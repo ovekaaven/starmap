@@ -13,8 +13,10 @@
 
 #define LIGHTYEAR_PER_PARSEC 3.26
 
-// Sol is about 50 light years above galactic plane
-#define SOL_Z_OFFSET 15.3
+// Sol is at least 14 light years above galactic plane,
+// but I'm not sure which way. For now, pretend we're
+// on the galactic plane.
+#define SOL_Z_OFFSET 0
 
 // other stuff we might need someday
 #define ECLIPTIC 84381.412 // arcsec
@@ -137,6 +139,8 @@ class coords {
   double operator/(const coords& c) // dot product
     { return cx * c.cx + cy * c.cy + cz + c.cz; }
   coords operator*(const tmatrix& m) const; // apply matrix
+  coords multiply(const coords& c) const
+    { return coords(cx * c.cx, cy * c.cy, cz * c.cz); }
   coords& operator*=(const tmatrix& m)
     { return *this = *this * m; }
   coords& operator*=(double s) // scaling
@@ -171,7 +175,7 @@ class tmatrix {
 
   // construct matrix from viewing angles
   // used for camera orientation in 3D space
-  tmatrix(angle pitch, angle yaw, angle roll, const coords &off = coords::null)
+  tmatrix(angle pitch, angle yaw, angle roll, const coords &off = coords::null, bool flip = false)
   {
     double s[3], c[3];
     s[0] = sin(pitch); c[0] = cos(pitch);
@@ -179,6 +183,12 @@ class tmatrix {
     s[2] = sin(roll);  c[2] = cos(roll);
 
     off.get(t[0], t[1], t[2]);
+
+    if (flip) {
+      s[0] = -s[0];
+      c[0] = -c[0];
+      t[2] = -t[2];
+    }
 
     // rotation order for view matrix: yaw, pitch, roll
     // didn't have a mathbook handy, so I solved it myself:
@@ -308,8 +318,8 @@ class stardata {
 WX_DECLARE_LIST(stardata, starlist);
 
 extern starlist stars;
-extern void read_gliese3(char*fname);
-extern void read_bright(char*cname,char*nname);
+extern void read_gliese3(const char*fname);
+extern void read_bright(const char*cname,const char*nname);
 
 class stardesc {
  public:
@@ -336,7 +346,7 @@ class StarFrame : public wxFrame
  public:
   StarCanvas *canvas;
 
-  StarFrame(wxFrame *parent, char *title, int x, int y, int w, int h);
+  StarFrame(wxFrame *parent, const char *title, int x, int y, int w, int h);
 
   void OnSize(wxSizeEvent& event);
   void OnCloseWindow(wxCloseEvent& event);

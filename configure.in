@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(starmap.h)
-AM_INIT_AUTOMAKE(starmap, 0.3, none)
+AM_INIT_AUTOMAKE(starmap, 0.4, none)
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.

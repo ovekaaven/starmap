@@ -10,6 +10,7 @@
 #define APP_NAMES   201
 #define APP_GRID    202
 #define APP_LINES   203
+#define APP_FLIP    204
 #define APP_SEARCH  300
 #define APP_FILTER  301
 
@@ -81,7 +82,7 @@ bool StarApp::OnInit(void)
   return TRUE;
 }
 
-StarFrame::StarFrame(wxFrame *frame, char *title, int x, int y, int w, int h)
+StarFrame::StarFrame(wxFrame *frame, const char *title, int x, int y, int w, int h)
   : wxFrame(frame, -1, title, wxPoint(x, y), wxSize(w, h))
 {
   CreateStatusBar(2);
@@ -93,6 +94,7 @@ StarFrame::StarFrame(wxFrame *frame, char *title, int x, int y, int w, int h)
   option_menu->Append(APP_NAMES,  "&Names", "Show star names", TRUE);
   option_menu->Append(APP_GRID,   "&Grid", "Show grid", TRUE);
   option_menu->Append(APP_LINES,  "&Lines", "Show lines to galactic plane", TRUE);
+  option_menu->Append(APP_FLIP,   "Fli&p", "Rotate 180 degrees around X axis", TRUE);
   wxMenu *view_menu = new wxMenu;
   view_menu->Append(APP_SEARCH,"&Search", "Find star names");
   wxMenu *help_menu = new wxMenu;
@@ -116,6 +118,7 @@ BEGIN_EVENT_TABLE(StarFrame, wxFrame)
   EVT_MENU(APP_NAMES, StarFrame::Option)
   EVT_MENU(APP_GRID,  StarFrame::Option)
   EVT_MENU(APP_LINES, StarFrame::Option)
+  EVT_MENU(APP_FLIP,  StarFrame::Option)
   EVT_MENU(APP_SEARCH,StarFrame::Search)
   EVT_SIZE(StarFrame::OnSize)
   EVT_CLOSE(StarFrame::OnCloseWindow)
@@ -179,8 +182,8 @@ void StarFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event) )
 
 StarCanvas::StarCanvas(wxFrame *parent)
   : wxWindow(parent, -1),
-    pos(0, 0, 30), // 30 parsec away from standard galactic plane
-    refpos(0, 0, -SOL_Z_OFFSET), // use Sol's position as initial ref
+    pos(0, 0, 35), // 35 parsec away from standard galactic plane
+    refpos(0, 0, SOL_Z_OFFSET), // use Sol's position as initial ref
     pitch(0),
     zoom(0.5),
     need_redraw(FALSE),
@@ -202,7 +205,8 @@ END_EVENT_TABLE()
 
 void StarCanvas::OnChar(wxKeyEvent& event)
 {
-  switch(event.KeyCode()) {
+  bool flip = menu_bar->IsChecked(APP_FLIP);
+  switch(event.GetKeyCode()) {
   case WXK_LEFT:
     pos += coords(+zoom/10, 0, 0);
     Redraw();
@@ -212,19 +216,19 @@ void StarCanvas::OnChar(wxKeyEvent& event)
     Redraw();
     break;
   case WXK_UP:
-    pos += coords(0, +zoom/10, 0);
+    pos += coords(0, flip ? -zoom/10 : +zoom/10, 0);
     Redraw();
     break;
   case WXK_DOWN:
-    pos += coords(0, -zoom/10, 0);
+    pos += coords(0, flip ? +zoom/10 : -zoom/10, 0);
     Redraw();
     break;
-  case WXK_PRIOR:
-    pos += coords(0, 0, -zoom/10);
+  case WXK_PAGEUP:
+    pos += coords(0, 0, -zoom/2);
     Redraw();
     break;
-  case WXK_NEXT:
-    pos += coords(0, 0, +zoom/10);
+  case WXK_PAGEDOWN:
+    pos += coords(0, 0, +zoom/2);
     Redraw();
     break;
   case WXK_HOME:
@@ -349,8 +353,9 @@ void StarCanvas::DoPaint(wxDC& dc)
   bool names = menu_bar->IsChecked(APP_NAMES);
   bool grid = menu_bar->IsChecked(APP_GRID);
   bool lines = menu_bar->IsChecked(APP_LINES);
+  bool flip = menu_bar->IsChecked(APP_FLIP);
 
-  tmatrix cam(pitch, 0, 0, pos);
+  tmatrix cam(pitch, 0, 0, pos, flip);
 
   // update frame's status bar
   wxFrame *frame = (wxFrame *)GetParent();
@@ -370,8 +375,9 @@ void StarCanvas::DoPaint(wxDC& dc)
 
   // draw grid
   if (grid && !pos.behind()) {
+    coords grid_pos = flip ? pos.multiply(coords(1,-1,1)) : pos;
     // not sure of the best way to draw it
-    wxPoint origin = pos.pproject(factor, mx, my);
+    wxPoint origin = grid_pos.pproject(factor, mx, my);
 
     double fac = factor / LIGHTYEAR_PER_PARSEC / pos.depth();
     // select a somewhat decent grid factor
@@ -562,7 +568,7 @@ void StarCanvas::ClearDescs(void)
   }
 }
 
-wxSize StarCanvas::CalcBox(wxDC& dc, wxString txt, int *tabpos = (int *)NULL)
+wxSize StarCanvas::CalcBox(wxDC& dc, wxString txt, int *tabpos)
 {
   const char*dat = txt.c_str();
   const char*next;

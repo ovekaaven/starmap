@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = foreign dist-tarZ
+AUTOMAKE_OPTIONS = foreign
 EXTRA_DIST = gliese/gliese3.dat gliese/gliese3.doc \
              bright/catalog.dat bright/notes.dat bright/ReadMe
 CXXFLAGS = -g -O2 -Wall @WX_FLAGS@

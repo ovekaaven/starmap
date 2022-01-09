@@ -14,7 +14,7 @@ WX_DEFINE_LIST(starlist);
 starlist stars;
 
 struct {
-  char*abb1,*abb2,*letter;
+  const char*abb1,*abb2,*letter;
 } greek[]={
   {"ALF","ALP","Alpha"},
   {"BET","B",  "Beta"},
@@ -44,7 +44,7 @@ struct {
 };
 
 struct {
-  char*abb,*name,*genitive;
+  const char*abb,*name,*genitive;
 } constellation[]={
   {"And","Andromeda",          "Andromedae"},
   {"Ant","Antlia",             "Antliae"},
@@ -138,14 +138,14 @@ struct {
 };
 
 struct {
-  char*name;
+  const char*name;
   int priority;
 } nsystem[]={
   // since I don't know much about these systems,
   // my priority ordering may appear more or less arbitrary
   // so just reprioritize as you see fit
 
-  // please do not use same priority for same systems
+  // please do not use same priority for different systems
   // (in addition to make the sorting arbitrary, it will slow down merges)
   {"Common",         0}, // Sirius, Procyon
   {"Bayer",          1}, // Alpha Centauri
@@ -200,7 +200,7 @@ enum esystem {
 
 // named systems (name + number, separated by space)
 struct {
-  char*abb,*name;
+  const char*abb,*name;
   esystem sys;
 } pfx_naming[]={
   {"ADS",        "ADS",             ADS},
@@ -230,7 +230,7 @@ struct {
 
 // patterned systems
 struct {
-  char*msk;
+  const char*msk;
   esystem sys;
 } dsg_naming[]={
   // match characters:
@@ -261,15 +261,12 @@ struct {
 // transformation matrices that convert from equatorial coordinates
 // to galactic coordinates; these are computed from the vectors to
 // the galactic core and the galactic north pole
-#if 0
-tmatrix epoch1950(coords(angle_ra(17, 42, 4),
+tmatrix epoch1950(coords(angle_ra(17, 42, 4), // galactic core
 			 angle_de(28, 55, '-'),
 			 distance(1)),
-		  // we lack the galactic north pole in 1950
-		  coords(0, 0, 0));
-#else
-#define epoch1950 epoch2000 // just use the 2000 numbers until we have 1950 data
-#endif
+		  coords(angle_ra(12, 49), // galactic north pole
+			 angle_de(27, 24, '+'),
+			 distance(1)));
 tmatrix epoch2000(coords(angle_ra(17, 45.6), // galactic core
 			 angle_de(28, 56.3, '-'),
 			 distance(1)),
@@ -335,9 +332,10 @@ void add_name(stardata *star, wxString pfx, wxString name, esystem sys = Other)
   add_name(star, sys, pfx + ' ' + name);
 }
 
-bool add_desig(stardata *star, const char*&input)
+bool add_desig(stardata *star, char*&input)
 {
-  const char*isrc,*imsk;
+  char*isrc;
+  const char*imsk;
   wxString dat;
   unsigned cnt;
   for (cnt=0; dsg_naming[cnt].msk; cnt++) {
@@ -399,7 +397,8 @@ bool add_desig(stardata *star, const char*&input)
 
 bool add_des(stardata *star, const char*input)
 {
-  return add_desig(star, input);
+  char*isrc = (char*)input;
+  return add_desig(star, isrc);
 }
 
 void add_dm(stardata *star, const char*input)
@@ -416,7 +415,7 @@ void add_dm(stardata *star, const char*input)
     cnt++;
   }
   while (cnt < 5) name << input[cnt++];
-  name << '°';
+  name << 'X';
   while (input[cnt] == ' ') cnt++;
   while (input[cnt] && (input[cnt] != ' ')) name << input[cnt++];
   add_name(star, DM, name);
@@ -656,7 +655,7 @@ void stardata::calc_temp(void)
 
 // Gliese 3.0 loader
 
-void read_gliese3(char*fname)
+void read_gliese3(const char*fname)
 {
   FILE*fil = fopen(fname,"r");
   char ident[9], comp[3], distrel;
@@ -748,7 +747,7 @@ void read_gliese3(char*fname)
 	       isnan(plx)?dist_ps(0):dist_ps(1000, plx));
     // convert to galactic coordinates
     pos *= epoch1950;
-    pos -= sol_pos;
+    pos += sol_pos;
 
 #if 0
     double x, y, z;
@@ -875,7 +874,7 @@ void read_gliese3(char*fname)
 
 // Bright Star Catalog loader
 
-void read_bright(char*cname, char*nname)
+void read_bright(const char*cname, const char*nname)
 {
   FILE*fil = fopen(cname,"r");
   FILE*nts = fopen(nname,"r");
@@ -972,7 +971,7 @@ void read_bright(char*cname, char*nname)
 	       dist_ps(1, plx));
     // convert to galactic coordinates
     pos *= epoch2000;
-    pos -= sol_pos;
+    pos += sol_pos;
 
 #if 0
     double x, y, z;
