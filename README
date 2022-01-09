@@ -1,0 +1,73 @@
+Starmap
+by Ove Kåven <ovek@arcticnet.no>
+http://www.arcticnet.no/~ovek/star/
+
+(This app currently takes a while to load...
+suggestions/patches for minimizing load time is welcome...
+I have started some work reducing it but got bored)
+
+This application is currently able to show an overhead view of
+nearby stars. Navigate with the arrow keys and PgUp/PgDn, zoom with
+the + and - keys. Point the mouse cursor at a star to get more
+information about it, including names, position, spectral type,
+and distance.
+
+You can press the left mouse button on a star to let the star become
+the new reference star, if you're interested in seeing the distance
+between that star and another.
+
+Experimental pitch control can be tried with Home/End, but do not rely
+on the grid if you try this; it's best to turn the grid off if you do.
+The lines to the galactic plane should in theory be correct though.
+(Patches to enhance the grid are of course welcome.)
+
+To compile this application, you need wxWindows; the Linux version
+is available from http://www.freiburg.linux.de/~wxxt/
+
+Have fun!
+
+FUTURE PLANS/POSSIBILITIES
+(I may not get around to implement all of these myself)
+
+Verify that the coordinate system is correct.
+
+Automatically adjust Gliese data to epoch 2000.
+
+Calculate star size and temperature, show star's visible color
+instead of plain dull white.
+
+Search facility.
+
+Full 3-D camera rotation support (including grid).
+
+Add non-perspective (orthographic) projection to Options menu,
+to show a completely flat starmap.
+
+Stereo mode (two views slightly shifted related to each other,
+one for each eye - unfortunately, I don't have stereoscopic vision
+myself (my left eye barely works), so I probably won't do it).
+
+Time machine option (see where stars are in the future, or was
+in the past).
+
+More intelligent nametag placement.
+
+Getting a clue about naming systems and such.
+
+Letting the app use its own database (reduces load time, and lets
+the user add his/her own remarks to a star - perhaps even a shared
+database would be great fun, users naming stars, adding event notes,
+info from SF novels, etc, and other users would see it too).
+
+Printing.
+
+Fix bugs.
+
+MORE INFORMATION
+
+This application was written with information from
+http://www.clark.net/pub/nyrath/starmap.html
+
+The Gliese 3.0 Near Star Catalog and Yale Bright Star Catalog is also
+available from the above site (the "My God, It's full of Stars!" page),
+or from NASA: http://adc.gsfc.nasa.gov/adc.html

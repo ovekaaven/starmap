@@ -1,0 +1,117 @@
+Example: SIG DRA is Sigma Draconis
+
+
+GREEK ALPHABET AND ABBREVIATIONS
+--------------------------------------
+Alpha    ALP            Nu       NU
+Beta     BET            Xi       XI
+Gamma    GAM            Omicron  OMI
+Delta    DEL            Pi       PI
+Epsilon  EPS            Rho      RHO
+Zeta     ZET            Sigma    SIG
+Eta      ETA            Tau      TAU
+Theta    THE            Upsilon  UPS
+Iota     IOT            Phi      PHI
+Kapppa   KAP            Chi      CHI
+Lambda   LAM            Psi      PSI
+Mu       MU             Omega    OME
+
+
+CONSTELLATION NAMES AND ABBREVIATIONS
+From: Lon Miller
+
+Name                Genitive            Abrv    Meaning
+---------------------------------------------------------
+Andromeda           Andromedae          And     Chained Maiden
+Antlia              Antliae             Ant     Air Pump
+Apus                Apodis              Aps     Bird of Paradise
+Aquarius            Aquarii             Aqr     Water Bearer
+Aquila              Aquilae             Aql     Eagle
+Ara                 Arae                Ara     Altar
+Aries               Arietis             Ari     Ram
+Auriga              Aurigae             Aur     Charioteer
+Bootes              Bootis              Boo     Herdsmen
+Caelum              Caeli               Cae     Chisel
+Camelopardalis      Camelopardalis      Cam     Giraffe
+Cancer              Cancri              Cnc     Crab
+Canes Venatici      Canum Venaticorum   CVn     Hunting Dogs
+Canis Major         Canis Majoris       CMa     Great Dog
+Canis Minor         Canis Minoris       CMi     Little Dog
+Capricornus         Capricorni          Cap     Sea-goat
+Carina              Carinae             Car     Keel
+Cassiopeia          Cassiopeiae         Cas     Queen
+Centaurus           Centauri            Cen     Centaur
+Cepheus             Cephei              Cep     King
+Cetus               Ceti                Cet     Whale
+Chamaeleon          Chamaeleontis       Cha     Chameleon
+Circinus            Circini             Cir     Compasses (art)
+Columba             Columbae            Col     Dove
+Coma Berenices      Comae Berenices     Com     Berenice's Hair
+Corona Australis    Coronae Australis   CrA     Southern Crown
+Corona Borealis     Coronae Borealis    CrB     Northern Crown
+Corvus              Corvi               Crv     Crow
+Crater              Crateris            Crt     Cup
+Crux                Crucis              Cru     Cross (southern)
+Cygnus              Cygni               Cyg     Swan
+Delphinus           Delphini            Del     Dolphin
+Dorado              Doradus             Dor     Goldfish
+Draco               Draconis            Dra     Dragon
+Equuleus            Equulei             Equ     Little Horse
+Eridanus            Eridani             Eri     River
+Fornax              Fornacis            For     Furnace
+Gemini              Geminorum           Gem     Twins
+Grus                Gruis               Gru     Crane (bird)
+Hercules            Herculis            Her     Hercules
+Horologium          Horologii           Hor     Clock
+Hydra               Hydrae              Hya     Water Snake (female)
+Hydrus              Hydri               Hyi     Water Snake (male)
+Indus               Indi                Ind     Indian
+Lacerta             Lacertae            Lac     Lizard
+Leo                 Leonis              Leo     Lion
+Leo Minor           Leonis Minoris      LMi     Little Lion
+Lepus               Leporis             Lep     Hare
+Libra               Librae              Lib     Balance
+Lupus               Lupi                Lup     Wolf
+Lynx                Lyncis              Lyn     Lynx
+Lyra                Lyrae               Lyr     Lyre
+Mensa               Mensae              Men     Table Mountain
+Microscopium        Microscopii         Mic     Microscope
+Monoceros           Monocerotis         Mon     Unicorn
+Musca               Muscae              Mus     Fly
+Norma               Normae              Nor     Square (rule)
+Octans              Octantis            Oct     Octant
+Ophiuchus           Ophiuchi            Oph     Serpent Bearer
+Orion               Orionis             Ori     Hunter
+Pavo                Pavonis             Pav     Peacock
+Pegasus             Pegasi              Peg     Flying Horse
+Perseus             Persei              Per     Hero
+Phoenix             Phoenicis           Phe     Phoenix
+Pictor              Pictoris            Pic     Painter
+Pisces              Piscium             Psc     Fishes
+Piscis Austrinius   Piscis Austrini	PsA	Southern Fish
+Puppis              Puppis              Pup     Stern (deck)
+Pyxis               Pyxidis             Pyx     Compass (sea)
+Reticulum           Reticuli            Ret     Reticle
+Sagitta             Sagittae            Sge     Arrow
+Sagittarius         Sagittarii          Sgr     Archer
+Scorpius            Scorpii             Sco     Scorpion
+Sculptor            Sculptoris          Scl     Sculptor
+Scutum              Scuti               Sct     Shield
+Serpens             Serpentis           Ser     Serpent
+Sextans             Sextantis           Sex     Sextant
+Taurus              Tauri               Tau     Bull
+Telescopium         Telescopii          Tel     Telescope
+Triangulum          Trianguli           Tri     Triangle
+Triangulum Australe Trianguli Australis TrA	Southern Triangle
+Tucana              Tucanae             Tuc     Toucan
+Ursa Major          Ursae Majoris       UMa     Great Bear
+Ursa Minor          Ursae Minoris       UMi     Little Bear
+Vela                Velorum             Vel     Sails
+Virgo               Virginis            Vir     Maiden
+Volans              Volantis            Vol     Flying Fish
+Vulpecula           Vulpeculae          Vul     Fox
+
+The World Almanac® and Book of Facts 1995 is licensed from Funk & Wagnalls Corporation. Copyright © 
+1994 by Funk & Wagnalls Corporation. All rights reserved.
+The World Almanac and The World Almanac and Book of Facts are registered trademarks of Funk & 
+Wagnalls Corporation.

@@ -1,0 +1,32 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(starmap.h)
+AM_INIT_AUTOMAKE(starmap, 0.3, none)
+AM_CONFIG_HEADER(config.h)
+
+dnl Checks for programs.
+AC_PROG_CXX
+AC_LANG_CPLUSPLUS
+
+dnl Checks for libraries.
+dnl We want to use wxGTK
+AC_PATH_PROG(WXCONFIG, wx-config)
+if test "$ac_cv_path_WXCONFIG" ; then {
+AC_CACHE_CHECK(wxwin compile flags,wxwin_cv_flags_cc,
+ wxwin_cv_flags_cc=$(${WXCONFIG} --cflags)
+)
+AC_CACHE_CHECK(wxwin libraries,wxwin_cv_libs, wxwin_cv_libs=$(${WXCONFIG} --libs))
+WX_FLAGS="$wxwin_cv_flags_cc"
+LIBS="$wxwin_cv_libs $LIBS"
+}
+fi
+AC_SUBST(WX_FLAGS)
+
+dnl Checks for header files.
+AC_HEADER_STDC
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_SIZE_T
+
+dnl Checks for library functions.
+AC_OUTPUT(Makefile)
