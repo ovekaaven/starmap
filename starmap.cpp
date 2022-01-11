@@ -47,7 +47,7 @@ stardesc::stardesc(stardata *st, coords& ref)
   stc -= ref;
   tmp.Printf("Dist: \t%.2f ly\n", (double)distance(stc) * LIGHTYEAR_PER_PARSEC);
   desc << tmp;
-  tmp.Printf("Abs Mag: \t%.2f\n", star->absmag);
+  tmp.Printf("Vmag: \t%.2f\n", star->vmag);
   desc << tmp;
   if (!star->remarks.IsEmpty())
     desc << "Remarks: \t" << star->remarks << '\n';

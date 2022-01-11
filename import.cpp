@@ -762,7 +762,7 @@ void read_gliese3(const char*fname)
 #endif
     // add star
     stardata *star = new stardata;
-    star->absmag = vis_mag; // ?? is this right?
+    star->vmag = vis_mag;
     star->bvmag = col_bv;
     star->ubmag = col_ub;
     star->rimag = col_ri;
@@ -985,14 +985,13 @@ void read_bright(const char*cname, const char*nname)
 #endif
     // add star
     stardata *star = new stardata;
-    star->absmag = vis_mag; // ?? is this right?
+    star->vmag = vis_mag;
     star->bvmag = col_bv;
     star->ubmag = col_ub;
     star->rimag = col_ri;
     star->type = sptype;
     star->calc_temp();
     star->set_pos(pos);
-    star->comp = 0; // TODO
 
     // add Harvard Revised Number
     {

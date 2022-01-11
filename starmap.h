@@ -283,7 +283,7 @@ class stardata {
   wxCoord tw, th; // text extents
   bool te;        // text extents
 
-  double absmag, bvmag, ubmag, rimag; // magnitudes
+  double vmag, bvmag, ubmag, rimag; // magnitudes
   wxString type;  // spectral type
 
   double temp;
