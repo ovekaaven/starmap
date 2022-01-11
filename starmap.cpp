@@ -69,9 +69,9 @@ bool StarApp::OnInit(void)
 {
   printf("Loading Gliese star catalog...\n");
   read_gliese3("gliese/gliese3.dat");
-  printf("Merging Yale bright star catalog (may take a while)...\n");
+  printf("Merging Yale bright star catalog...\n");
   read_bright("bright/catalog.dat", "bright/notes.dat");
-  printf("Data loaded. Starting...\n");
+  printf("Loaded %u stars. Starting...\n", stars.GetCount());
 
   frame = new StarFrame((wxFrame *)NULL, "Starmap", 0, 0, 550, 500);
 

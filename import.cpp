@@ -12,6 +12,7 @@ WX_DEFINE_LIST(namelist);
 WX_DEFINE_LIST(starlist);
 
 starlist stars;
+starnamemap starnames;
 
 struct {
   const char*abb1,*abb2,*letter;
@@ -145,8 +146,9 @@ struct {
   // my priority ordering may appear more or less arbitrary
   // so just reprioritize as you see fit
 
-  // please do not use same priority for different systems
-  // (in addition to make the sorting arbitrary, it will slow down merges)
+  // don't use same priority for different systems,
+  // as it might make the sorting nondeterministic.
+
   {"Common",         0}, // Sirius, Procyon
   {"Bayer",          1}, // Alpha Centauri
   {"Flamsteed",      2}, // 44 Iota Bootis
@@ -433,28 +435,35 @@ bool eat_name(wxString pfx)
 void add_star(stardata *star)
 {
   stars.Append(star);
+  wxnamelistNode *nd = star->names.GetFirst();
+  while (nd) {
+    starname *nm = nd->GetData();
+    starnames[nm->name] = star;
+    nd = nd->GetNext();
+  }
 }
 
 void merge_star(stardata *star)
 {
-#if 1
-  wxstarlistNode *node = stars.GetFirst();
-  while (node) {
-    stardata *cstar = node->GetData();
-
-    if (!cstar->merged) {
-      if (cstar->has_names(star->names)) {
-	// found match, merge
-	cstar->merge_names(star->names);
-	// delete duplicate
-	cstar->merged = TRUE;
-	delete star;
-	return;
+  wxnamelistNode *nd = star->names.GetFirst();
+  while (nd) {
+    starname *nm = nd->GetData();
+    starnamemap::iterator it = starnames.find(nm->name);
+    if (it != starnames.end()) {
+      stardata *cstar = it->second;
+      // in several common naming systems, the component stars of a binary star system
+      // don't necessarily have distinct names, so check the component before merging
+      if (star->comp == cstar->comp) {
+        // found match, merge
+        cstar->merge_names(star->names);
+        // delete duplicate
+        cstar->merged = TRUE;
+        delete star;
+        return;
       }
     }
-    node = node->GetNext();
+    nd = nd->GetNext();
   }
-#endif
   // not found, consider it a new star
   star->merged = TRUE;
   add_star(star);
@@ -572,54 +581,6 @@ stardata::~stardata(void)
 void stardata::sort_names(void)
 {
   names.Sort(name_order);
-}
-
-// #define PROFILE_MERGE
-bool stardata::has_names(const namelist& cand)
-{
-  // assume names are already sorted, to optimize check
-  wxnamelistNode *nd1 = names.GetFirst(), *nd2 = cand.GetFirst();
-  if (!nd2) return FALSE; // can't match anything
-  while (nd1) {
-    starname *nm1 = nd1->GetData();
-    if (nm1->priority == nd2->GetData()->priority) {
-      // we have same priority, so perform check
-      wxnamelistNode *ndt = nd2;
-      // checking by moving down list 2
-      while (nd2 && (nd2->GetData()->priority == nm1->priority)) {
-	if (nm1->name == nd2->GetData()->name)
-	  return TRUE;
-#ifdef PROFILE_MERGE
-	if (nd2->GetNext() && (nd2->GetNext()->GetData()->priority == nm1->priority)) {
-	  printf("Please separate: %s/%s\n",
-		 nd2->GetData()->name.c_str(), nd2->GetNext()->GetData()->name.c_str());
-	}
-#endif
-	nd2 = nd2->GetNext();
-      }
-#ifdef PROFILE_MERGE
-      if (nd1->GetNext() && (nd1->GetNext()->GetData()->priority == nm1->priority)) {
-	printf("Please separate: %s/%s\n",
-	       nd1->GetData()->name.c_str(), nd1->GetNext()->GetData()->name.c_str());
-      }
-#endif
-      // move down list 1
-      nd1 = nd1->GetNext();
-      // revert list 2, in case next entry in list 1 still has same priority
-      nd2 = ndt;
-    } else {
-      // move down list 2 until we have same priority
-      while (nd2 && (nd2->GetData()->priority < nm1->priority))
-	nd2 = nd2->GetNext();
-      starname *nm2 = nd2->GetData();
-      // move down list 1 until we have same priority
-      while (nd1 && (nd1->GetData()->priority < nm2->priority))
-	nd1 = nd1->GetNext();
-      // loop to try again
-    }
-  }
-  // no match
-  return FALSE;
 }
 
 void stardata::merge_names(const namelist& dat)
@@ -992,6 +953,8 @@ void read_bright(const char*cname, const char*nname)
     star->type = sptype;
     star->calc_temp();
     star->set_pos(pos);
+    // TODO: handle two-letter component names
+    star->comp = (comp[0] >= 'A') ? (comp[0]-'A'+1) : 0;
 
     // add Harvard Revised Number
     {
