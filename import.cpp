@@ -209,7 +209,7 @@ struct {
   {"BPM",        "BPM",        BPM},
   {"Feige",      "Feige",      Simple},
   {"Gl",         "Gl",         Gliese},
-  {"GJ",         "GJ",         Gliese},
+  {"GJ",         "GJ",         Gliese}, // Gliese/Jahreiss
   {"Hei",        "Hei",        Simple},
   {"Kui",        "Kui",        Simple},
   {"L",          "L",          L},
@@ -225,7 +225,7 @@ struct {
   {"Stein",      "Stein",      Simple},
   {"Steph",      "Steph",      Simple},
   {"van Maanen", "van Maanen", Simple},
-  {"Wo",         "Wo",         Gliese},
+  {"Wo",         "GJ",         Gliese}, // Wo is deprecated, need to use GJ
   {"Wolf",       "Wolf",       Simple},
   {NULL}
 };
@@ -408,7 +408,7 @@ void add_dm(stardata *star, const char*input)
   wxString name;
   unsigned cnt = 0;
   if (input[cnt] == ' ') {
-    name << wxT("DM");
+    name << wxT("BD");
     cnt += 2;
   }
   while (cnt < 3) name << input[cnt++];
