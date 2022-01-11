@@ -959,13 +959,13 @@ void read_bright(const char*cname, const char*nname)
     // add Harvard Revised Number
     {
       wxString name;
-      name.Printf("HRN %d", hd); // ?
+      name.Printf("HR %d", hrn);
       add_name(star, Harvard, name);
     }
     // add HD number
     if (hd) {
       wxString name;
-      name.Printf("HD %d", hd); // ?
+      name.Printf("HD %d", hd);
       add_name(star, HD, name);
     }
     // add Durchmusterung number
