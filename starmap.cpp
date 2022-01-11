@@ -1,6 +1,3 @@
-// data available from
-// http://www.clark.net/pub/nyrath/starmap.html
-
 #include "starmap.h"
 #include <stdio.h>
 

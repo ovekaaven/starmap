@@ -1,10 +1,6 @@
 Starmap
-by Ove Kåven <ovek@arcticnet.no>
-http://www.arcticnet.no/~ovek/star/
-
-(This app currently takes a while to load...
-suggestions/patches for minimizing load time is welcome...
-I have started some work reducing it but got bored)
+by Ove KÃ¥ven <ovek@arcticnet.no>
+https://github.com/ovekaaven/starmap
 
 This application is currently able to show an overhead view of
 nearby stars. Navigate with the arrow keys and PgUp/PgDn, zoom with
@@ -21,8 +17,7 @@ on the grid if you try this; it's best to turn the grid off if you do.
 The lines to the galactic plane should in theory be correct though.
 (Patches to enhance the grid are of course welcome.)
 
-To compile this application, you need wxWindows; the Linux version
-is available from http://www.freiburg.linux.de/~wxxt/
+To compile this application, you need wxWidgets, https://www.wxwidgets.org/
 
 Have fun!
 
@@ -66,8 +61,8 @@ Fix bugs.
 MORE INFORMATION
 
 This application was written with information from
-http://www.clark.net/pub/nyrath/starmap.html
+http://www.projectrho.com/public_html/starmaps/index.php
 
 The Gliese 3.0 Near Star Catalog and Yale Bright Star Catalog is also
 available from the above site (the "My God, It's full of Stars!" page),
-or from NASA: http://adc.gsfc.nasa.gov/adc.html
+as well as various other sites.
