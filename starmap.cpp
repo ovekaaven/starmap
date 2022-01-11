@@ -570,17 +570,17 @@ void StarCanvas::ClearDescs(void)
 
 wxSize StarCanvas::CalcBox(wxDC& dc, wxString txt, int *tabpos)
 {
-  const char*dat = txt.c_str();
-  const char*next;
-  wxCoord cw[2] = {0, 0};
+  const wxChar *dat = txt.wx_str();
+  const wxChar *next;
+  long cw[2] = {0, 0};
   wxCoord ch = 0, w, h;
   int cp = 0;
   size_t len;
   wxSize ret(0, 0);
 
   do {
-    next = strpbrk(dat, "\t\n");
-    len = next ? (next - dat) : strlen(dat);
+    next = wxStrpbrk(dat, wxT("\t\n"));
+    len = next ? (next - dat) : wxStrlen(dat);
     dc.GetTextExtent(wxString(dat, len), &w, &h);
     if (h > ch) ch = h;
     if (w > cw[cp]) cw[cp] = w;
@@ -589,7 +589,7 @@ wxSize StarCanvas::CalcBox(wxDC& dc, wxString txt, int *tabpos)
       ch = 0;
       cp = 0;
     } else cp++;
-    dat = next ? (next+1) : (const char *)NULL;
+    dat = next ? (next+1) : (const wxChar *)NULL;
   } while (dat && *dat);
 
   for (cp=0; cp<2; cp++) {
@@ -609,8 +609,8 @@ void StarCanvas::ShowBox(wxDC& dc, wxString txt, wxPoint pos)
 {
   int tabpos[2], cp = 0;
   wxSize siz = CalcBox(dc, txt, tabpos);
-  const char*dat = txt.c_str();
-  const char*next;
+  const wxChar *dat = txt.wx_str();
+  const wxChar *next;
   wxCoord ch = 0, h;
   size_t len;
 
@@ -624,8 +624,8 @@ void StarCanvas::ShowBox(wxDC& dc, wxString txt, wxPoint pos)
   dc.SetTextForeground(*wxGREEN);
 
   do {
-    next = strpbrk(dat, "\t\n");
-    len = next ? (next - dat) : strlen(dat);
+    next = wxStrpbrk(dat, wxT("\t\n"));
+    len = next ? (next - dat) : wxStrlen(dat);
     dc.DrawText(wxString(dat, len), pos.x + tabpos[cp], pos.y);
     dc.GetTextExtent(wxString(dat, len), NULL, &h);
     if (h > ch) ch = h;
@@ -634,6 +634,6 @@ void StarCanvas::ShowBox(wxDC& dc, wxString txt, wxPoint pos)
       ch = 0;
       cp = 0;
     } else cp++;
-    dat = next ? (next+1) : (const char *)NULL;
+    dat = next ? (next+1) : (const wxChar *)NULL;
   } while (dat && *dat);
 }
