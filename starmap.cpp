@@ -131,8 +131,8 @@ void StarFrame::Quit(wxCommandEvent& WXUNUSED(event) )
 
 void StarFrame::About(wxCommandEvent& WXUNUSED(event) )
 {
-  (void)wxMessageBox("Starmap\nby Ove Kåven",
-                     "About Starmap", wxOK|wxCENTRE);
+  (void)wxMessageBox(wxT("Starmap\nby Ove K\u00e5ven"),
+                     wxT("About Starmap"), wxOK|wxCENTRE);
 }
 
 void StarFrame::Option(wxCommandEvent& WXUNUSED(event) )
