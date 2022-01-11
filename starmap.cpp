@@ -572,8 +572,8 @@ wxSize StarCanvas::CalcBox(wxDC& dc, wxString txt, int *tabpos)
 {
   const char*dat = txt.c_str();
   const char*next;
-  long cw[2] = {0, 0};
-  long ch = 0, w, h;
+  wxCoord cw[2] = {0, 0};
+  wxCoord ch = 0, w, h;
   int cp = 0;
   size_t len;
   wxSize ret(0, 0);
@@ -611,7 +611,7 @@ void StarCanvas::ShowBox(wxDC& dc, wxString txt, wxPoint pos)
   wxSize siz = CalcBox(dc, txt, tabpos);
   const char*dat = txt.c_str();
   const char*next;
-  long ch = 0, h;
+  wxCoord ch = 0, h;
   size_t len;
 
   dc.SetBrush(*wxBLACK_BRUSH);

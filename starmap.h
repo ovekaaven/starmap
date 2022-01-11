@@ -1,7 +1,3 @@
-// we need NAN
-#define _ISOC9X_SOURCE
-#define _BSD_SOURCE
-
 #include <wx/wxprec.h>
 
 #ifndef WX_PRECOMP
@@ -284,7 +280,7 @@ class stardata {
   double x, y, z; // star coordinates (parsecs, heliocentric)
   wxPoint proj;   // current projection point
   bool show;      // current visibility
-  long tw, th;    // text extents
+  wxCoord tw, th; // text extents
   bool te;        // text extents
 
   double absmag, bvmag, ubmag, rimag; // magnitudes
