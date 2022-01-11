@@ -154,7 +154,7 @@ struct {
   {"AC",             6}, // AC+82:1111
   {"ADS",           20}, // ?
   {"BPM",           21}, // ?
-  {"Durchmusterung", 5}, // DM-36°2147
+  {"Durchmusterung", 5}, // DM-36Â°2147
   {"Giclas",         7}, // G158-027
   {"Gliese",        50}, // ?
   {"Harvard",       51}, // ?
@@ -318,7 +318,7 @@ void add_name(stardata *star, esystem sys, wxString name)
 
 void add_name(stardata *star, wxString pfx, wxString name, esystem sys = Other)
 {
-  if (name.CmpNoCase("star") == 0) {
+  if (name.CmpNoCase(wxT("star")) == 0) {
     // handles cases like Barnard's star
     sys = Common;
   } else {
@@ -406,16 +406,16 @@ void add_dm(stardata *star, const char*input)
   wxString name;
   unsigned cnt = 0;
   if (input[cnt] == ' ') {
-    name << "DM";
+    name << wxT("DM");
     cnt += 2;
   }
   while (cnt < 3) name << input[cnt++];
   while (input[cnt] == ' ') {
-    name << '0';
+    name << wxT('0');
     cnt++;
   }
   while (cnt < 5) name << input[cnt++];
-  name << 'X';
+  name << wxT('\u00b0');
   while (input[cnt] == ' ') cnt++;
   while (input[cnt] && (input[cnt] != ' ')) name << input[cnt++];
   add_name(star, DM, name);
@@ -425,7 +425,7 @@ bool eat_name(wxString pfx)
 {
   // van Maanen
   // move this to a table later
-  if (pfx == "van") return TRUE;
+  if (pfx == wxT("van")) return TRUE;
 
   return FALSE;
 }
