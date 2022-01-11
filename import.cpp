@@ -205,28 +205,28 @@ struct {
   const char*abb,*name;
   esystem sys;
 } pfx_naming[]={
-  {"ADS",        "ADS",             ADS},
-  {"BPM",        "BPM",             BPM},
-  {"Feige",      "Feige",           Simple},
-  {"Gl",         "Gliese",          Gliese},
-  {"GJ",         "Gliese/Jahreiss", Gliese},
-  {"Hei",        "Hei",             Simple},
-  {"Kui",        "Kui",             Simple},
-  {"L",          "L",               L},
-  {"LFT",        "LFT",             LFT},
-  {"LHS",        "LHS",             LHS},    // ?
-  {"LOWNE",      "LOWNE",           Simple},
-  {"LP",         "LP",              LP},
-  {"LTT",        "LTT",             LTT},
-  {"Rob",        "Rob",             Simple},
-  {"Ross",       "Ross",            Simple},
-  {"San",        "San",             Simple},
-  {"SAO",        "SAO",             SAO},    // ?
-  {"Stein",      "Stein",           Simple},
-  {"Steph",      "Steph",           Simple},
-  {"van Maanen", "van Maanen",      Simple},
-  {"Wo",         "Woolley",         Gliese},
-  {"Wolf",       "Wolf",            Simple},
+  {"ADS",        "ADS",        ADS},
+  {"BPM",        "BPM",        BPM},
+  {"Feige",      "Feige",      Simple},
+  {"Gl",         "Gl",         Gliese},
+  {"GJ",         "GJ",         Gliese},
+  {"Hei",        "Hei",        Simple},
+  {"Kui",        "Kui",        Simple},
+  {"L",          "L",          L},
+  {"LFT",        "LFT",        LFT},
+  {"LHS",        "LHS",        LHS},    // ?
+  {"LOWNE",      "LOWNE",      Simple},
+  {"LP",         "LP",         LP},
+  {"LTT",        "LTT",        LTT},
+  {"Rob",        "Rob",        Simple},
+  {"Ross",       "Ross",       Simple},
+  {"San",        "San",        Simple},
+  {"SAO",        "SAO",        SAO},    // ?
+  {"Stein",      "Stein",      Simple},
+  {"Steph",      "Steph",      Simple},
+  {"van Maanen", "van Maanen", Simple},
+  {"Wo",         "Wo",         Gliese},
+  {"Wolf",       "Wolf",       Simple},
   {NULL}
 };
 
