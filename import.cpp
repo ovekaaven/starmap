@@ -1048,7 +1048,7 @@ void read_bright(const char*cname, const char*nname)
     }
     while (nptr && (nhrn == hrn)) {
       unsigned count;
-      char cat[5];
+      char cat[6];
       read_num(nptr, 2, count);
       read_strz(nptr, 5, cat);
       if ((count == 1) && (strcmp(cat, "N:") == 0)) {
