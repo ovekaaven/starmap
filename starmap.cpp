@@ -82,6 +82,8 @@ bool StarApp::OnInit(void)
 StarFrame::StarFrame(wxFrame *frame, const char *title, int x, int y, int w, int h)
   : wxFrame(frame, -1, title, wxPoint(x, y), wxSize(w, h))
 {
+  canvas = new StarCanvas(this);
+
   CreateStatusBar(2);
 
   wxMenu *file_menu = new wxMenu;
@@ -105,8 +107,6 @@ StarFrame::StarFrame(wxFrame *frame, const char *title, int x, int y, int w, int
   menu_bar->Check(APP_NAMES, TRUE);
   menu_bar->Check(APP_GRID,  TRUE);
   menu_bar->Check(APP_LINES, TRUE);
-
-  canvas = new StarCanvas(this);
 }
 
 BEGIN_EVENT_TABLE(StarFrame, wxFrame)
@@ -191,6 +191,7 @@ StarCanvas::StarCanvas(wxFrame *parent)
 }
 
 BEGIN_EVENT_TABLE(StarCanvas, wxWindow)
+  EVT_SIZE(StarCanvas::OnSize)
   EVT_CHAR(StarCanvas::OnChar)
   EVT_KEY_DOWN(StarCanvas::OnKeyDown)
   EVT_MOTION(StarCanvas::OnMotion)
@@ -199,6 +200,11 @@ BEGIN_EVENT_TABLE(StarCanvas, wxWindow)
   EVT_IDLE(StarCanvas::OnIdle)
   EVT_PAINT(StarCanvas::OnPaint)
 END_EVENT_TABLE()
+
+void StarCanvas::OnSize(wxSizeEvent& WXUNUSED(event) )
+{
+  Refresh();
+}
 
 void StarCanvas::OnChar(wxKeyEvent& event)
 {

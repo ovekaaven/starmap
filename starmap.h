@@ -372,6 +372,7 @@ class StarCanvas : public wxWindow
 
   StarCanvas(wxFrame *parent);
 
+  void OnSize(wxSizeEvent& event);
   void OnChar(wxKeyEvent& event);
   void OnKeyDown(wxKeyEvent& event);
   void OnMotion(wxMouseEvent& event);
