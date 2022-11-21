@@ -1,6 +1,7 @@
 #include "readbase.h"
 
 #include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
 #include <wx/log.h>
 
 const Transform ReadBase::epoch1950(
@@ -20,8 +21,22 @@ const Transform ReadBase::epoch2000(
                 Angle(-(27*60 + 7.7) * M_PI / (180*60))));
 
 bool ReadBase::OpenStream(boost::iostreams::filtering_istream& stream, const wxFileName& name) {
-  stream.push(boost::iostreams::file_descriptor_source(name.GetFullPath().ToStdString()));
-  return stream.good();
+  // Open uncompressed file, if any.
+  if (name.FileExists()) {
+    stream.push(boost::iostreams::file_descriptor_source(name.GetFullPath().ToStdString()));
+    return stream.good();
+  }
+
+  // Otherwise, see if there's a gzip-compressed file.
+  wxFileName gzname(name.GetFullPath() + wxT(".gz"));
+  if (gzname.FileExists()) {
+    stream.push(boost::iostreams::gzip_decompressor());
+    stream.push(boost::iostreams::file_descriptor_source(gzname.GetFullPath().ToStdString()));
+    return stream.good();
+  }
+
+  // No file found...
+  return false;
 }
 
 void ReadBase::ReadRA(WorkData& data, const std::string& h, const std::string& m, const std::string& s) {
