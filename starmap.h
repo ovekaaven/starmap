@@ -5,6 +5,8 @@
 #include <wx/list.h>
 #endif
 
+#include <list>
+
 // some definitions
 
 #define LIGHTYEAR_PER_PARSEC 3.26
@@ -267,14 +269,15 @@ class starname {
   wxString name;
   int priority;
   starname(wxString nam, int pri) : name(nam), priority(pri) {}
+  starname(const starname& other) : name(other.name), priority(other.priority) {}
+  bool operator<(const starname& other) { return priority < other.priority; }
+  bool operator>(const starname& other) { return priority > other.priority; }
 };
-
-WX_DECLARE_LIST(starname, namelist);
 
 class stardata {
  public:
   bool merged;
-  namelist names;
+  std::list<starname> names;
   int comp;
 
   double x, y, z; // star coordinates (parsecs, heliocentric)
@@ -292,10 +295,8 @@ class stardata {
 
   stardata(void)
     : merged(FALSE), te(FALSE) {}
-  ~stardata(void);
   void sort_names(void);
-  bool has_names(const namelist& cand);
-  void merge_names(const namelist& dat);
+  bool has_name(const wxString& name);
 
   void set_pos(const coords&pos)
     { pos.get(x, y, z); }

@@ -23,13 +23,10 @@ stardesc::stardesc(stardata *st, coords& ref)
     prepped(FALSE)
 {
   wxString tmp;
-  wxnamelistNode *nnode = star->names.GetFirst();
-  if (nnode) {
+  if (!star->names.empty()) {
     desc << "Names: ";
-    while (nnode) {
-      starname *name = nnode->GetData();
-      desc << '\t' << name->name << '\n';
-      nnode = nnode->GetNext();
+    for (const auto& it : star->names) {
+      desc << '\t' << it.name << '\n';
     }
   }
   if (!star->type.IsEmpty())
@@ -150,16 +147,13 @@ void StarFrame::Search(wxCommandEvent& WXUNUSED(event) )
   wxstarlistNode *node = stars.GetFirst();
   while (node) {
     stardata *star = node->GetData();
-    wxnamelistNode *nnode = star->names.GetFirst();
-    while (nnode) {
-      starname *name = nnode->GetData();
-      if (name->name.Find(str) >= 0) {
+    for (const auto &nit : star->names) {
+      if (nit.name.Find(str) >= 0) {
 	// found a match, center on it
 	canvas->pos = coords(-star->x, -star->y, canvas->pos.depth());
 	Refresh();
 	return;
       }
-      nnode = nnode->GetNext();
     }
     node = node->GetNext();
   }
@@ -429,19 +423,16 @@ void StarCanvas::DoPaint(wxDC& dc)
     node = stars.GetFirst();
     while (node) {
       stardata *star = node->GetData();
-      if (star->show) {
-	wxnamelistNode *nnode = star->names.GetFirst();
-	if (nnode) {
-	  starname *name = nnode->GetData();
-	  if (!star->te) {
-	    dc.GetTextExtent(name->name, &star->tw, &star->th);
-	    star->te = TRUE;
-	  }
-	  if (star->comp) // binary/trinary star systems or something?
-	    dc.DrawText(name->name, star->proj.x - star->tw/2, star->proj.y + star->th * (star->comp - 2));
-	  else
-	    dc.DrawText(name->name, star->proj.x - star->tw/2, star->proj.y - star->th);
-	}
+      if (star->show && !star->names.empty()) {
+        const auto &nit = star->names.front();
+        if (!star->te) {
+          dc.GetTextExtent(nit.name, &star->tw, &star->th);
+          star->te = TRUE;
+        }
+        if (star->comp) // binary/trinary star systems or something?
+          dc.DrawText(nit.name, star->proj.x - star->tw/2, star->proj.y + star->th * (star->comp - 2));
+        else
+          dc.DrawText(nit.name, star->proj.x - star->tw/2, star->proj.y - star->th);
       }
       node = node->GetNext();
     }

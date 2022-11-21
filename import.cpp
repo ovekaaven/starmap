@@ -6,9 +6,6 @@
 #endif
 
 #include <wx/listimpl.cpp>
-WX_DEFINE_LIST(namelist);
-
-#include <wx/listimpl.cpp>
 WX_DEFINE_LIST(starlist);
 
 starlist stars;
@@ -315,7 +312,7 @@ void add_name(stardata *star, esystem sys, wxString name)
 {
   int priority = nsystem[sys].priority;
 
-  star->names.Append(new starname(name, priority));
+  star->names.emplace_back(name, priority);
 }
 
 void add_name(stardata *star, wxString pfx, wxString name, esystem sys = Other)
@@ -435,34 +432,45 @@ bool eat_name(wxString pfx)
 void add_star(stardata *star)
 {
   stars.Append(star);
-  wxnamelistNode *nd = star->names.GetFirst();
-  while (nd) {
-    starname *nm = nd->GetData();
-    starnames[nm->name] = star;
-    nd = nd->GetNext();
+
+  for (const auto& it : star->names) {
+    starnames[it.name] = star;
   }
+}
+
+static void merge_names(stardata *star, std::list<starname> &dat)
+{
+  auto nit = dat.begin();
+  while (nit != dat.end()) {
+    auto cit = nit;
+    nit++;
+    // check whether we already have the name
+    if (!star->has_name(cit->name)) {
+      // nope, so merge it
+      star->names.splice(star->names.end(), dat, cit);
+    }
+  }
+  // re-sort names
+  star->sort_names();
 }
 
 void merge_star(stardata *star)
 {
-  wxnamelistNode *nd = star->names.GetFirst();
-  while (nd) {
-    starname *nm = nd->GetData();
-    starnamemap::iterator it = starnames.find(nm->name);
+  for (const auto& nit : star->names) {
+    starnamemap::iterator it = starnames.find(nit.name);
     if (it != starnames.end()) {
       stardata *cstar = it->second;
       // in several common naming systems, the component stars of a binary star system
       // don't necessarily have distinct names, so check the component before merging
       if (star->comp == cstar->comp) {
         // found match, merge
-        cstar->merge_names(star->names);
+        merge_names(cstar, star->names);
         // delete duplicate
         cstar->merged = TRUE;
         delete star;
         return;
       }
     }
-    nd = nd->GetNext();
   }
   // not found, consider it a new star
   star->merged = TRUE;
@@ -553,56 +561,17 @@ wxString read_tok(char*&ptr)
   }
 }
 
-int name_order(const starname*nam1, const starname*nam2)
-{
-  // sooner or later wxWindows will fix this typemess, I guess,
-  // but for now this is necessary
-  const starname *nm1 = *(const starname **)nam1, *nm2 = *(const starname **)nam2;
-  return nm1->priority - nm2->priority;
-}
-
-// overload the right version for when they do fix it
-int name_order(const starname**nm1, const starname**nm2)
-{
-  return (*nm1)->priority - (*nm2)->priority;
-}
-
-stardata::~stardata(void)
-{
-  wxnamelistNode *node = names.GetFirst();
-  while (node) {
-    starname *name = node->GetData();
-    delete name;
-    delete node;
-    node = names.GetFirst();
-  }
-}
-
 void stardata::sort_names(void)
 {
-  names.Sort(name_order);
+  names.sort();
 }
 
-void stardata::merge_names(const namelist& dat)
+bool stardata::has_name(const wxString& name)
 {
-  wxnamelistNode *nd2 = dat.GetFirst();
-  while (nd2) {
-    starname *nm2 = nd2->GetData();
-    // check whether we already have the name
-    wxnamelistNode *nd1 = names.GetFirst();
-    while (nd1) {
-      starname *nm1 = nd1->GetData();
-      if (nm1->name == nm2->name) break;
-      nd1 = nd1->GetNext();
-    }
-    if (!nd1) {
-      // nope, so add it
-      names.Append(new starname(nm2->name, nm2->priority));
-    }
-    nd2 = nd2->GetNext();
+  for (const auto &nit : names) {
+    if (nit.name == name) return true;
   }
-  // re-sort names
-  sort_names();
+  return false;
 }
 
 void stardata::calc_temp(void)
