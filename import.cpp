@@ -6,6 +6,10 @@
 #include <wx/listimpl.cpp>
 WX_DEFINE_LIST(starlist);
 
+const double min_vmag = 5.0; // magnitude that maps to darkest color
+const double max_vmag = -3.0; // magnitude that maps to brightest color
+const float min_factor = 0.1f; // ensures stars don't get too dark to see
+
 starlist stars;
 starnamemap starnames;
 
@@ -114,12 +118,16 @@ void import_catalog(ReadBase& importer) {
   while (importer.ReadNext(data)) {
     if (!data.is3d) continue;
 
+    float mag_factor = (float)((min_vmag - data.vmag) / (min_vmag - max_vmag));
+    mag_factor = std::max(mag_factor, 0.0f) * (1.0f - min_factor) + min_factor;
+
     // Copy data to final data structure
     stardata* star = new stardata;
     data.position.get(star->x, star->y, star->z);
     star->vmag = data.vmag;
     star->type = data.spectral_type;
     star->temp = data.temperature;
+    star->color = (data.color * mag_factor).ToDisplay();
     star->remarks = data.remarks;
 
     if (!data.components.IsEmpty()) {

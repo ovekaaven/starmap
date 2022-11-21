@@ -8,7 +8,8 @@
 #define APP_NAMES   201
 #define APP_GRID    202
 #define APP_LINES   203
-#define APP_FLIP    204
+#define APP_COLORS  204
+#define APP_FLIP    205
 #define APP_SEARCH  300
 #define APP_FILTER  301
 
@@ -84,6 +85,7 @@ StarFrame::StarFrame(wxFrame *frame, const char *title, int x, int y, int w, int
   option_menu->Append(APP_NAMES,  "&Names", "Show star names", TRUE);
   option_menu->Append(APP_GRID,   "&Grid", "Show grid", TRUE);
   option_menu->Append(APP_LINES,  "&Lines", "Show lines to galactic plane", TRUE);
+  option_menu->Append(APP_COLORS, "&Colors", "Show colors", TRUE);
   option_menu->Append(APP_FLIP,   "Fli&p", "Rotate 180 degrees around X axis", TRUE);
   wxMenu *view_menu = new wxMenu;
   view_menu->Append(APP_SEARCH,"&Search", "Find star names");
@@ -95,9 +97,10 @@ StarFrame::StarFrame(wxFrame *frame, const char *title, int x, int y, int w, int
   menu_bar->Append(view_menu, "&View");
   menu_bar->Append(help_menu, "&Help");
   SetMenuBar(menu_bar);
-  menu_bar->Check(APP_NAMES, TRUE);
-  menu_bar->Check(APP_GRID,  TRUE);
-  menu_bar->Check(APP_LINES, TRUE);
+  menu_bar->Check(APP_NAMES,  TRUE);
+  menu_bar->Check(APP_GRID,   TRUE);
+  menu_bar->Check(APP_LINES,  TRUE);
+  menu_bar->Check(APP_COLORS, TRUE);
 }
 
 BEGIN_EVENT_TABLE(StarFrame, wxFrame)
@@ -106,6 +109,7 @@ BEGIN_EVENT_TABLE(StarFrame, wxFrame)
   EVT_MENU(APP_NAMES, StarFrame::Option)
   EVT_MENU(APP_GRID,  StarFrame::Option)
   EVT_MENU(APP_LINES, StarFrame::Option)
+  EVT_MENU(APP_COLORS,StarFrame::Option)
   EVT_MENU(APP_FLIP,  StarFrame::Option)
   EVT_MENU(APP_SEARCH,StarFrame::Search)
   EVT_SIZE(StarFrame::OnSize)
@@ -335,6 +339,7 @@ void StarCanvas::DoPaint(wxDC& dc)
   bool names = menu_bar->IsChecked(APP_NAMES);
   bool grid = menu_bar->IsChecked(APP_GRID);
   bool lines = menu_bar->IsChecked(APP_LINES);
+  bool colors = menu_bar->IsChecked(APP_COLORS);
   bool flip = menu_bar->IsChecked(APP_FLIP);
 
   tmatrix cam(pitch, 0, 0, pos, flip);
@@ -436,6 +441,9 @@ void StarCanvas::DoPaint(wxDC& dc)
 	    dc.SetPen(*wxTRANSPARENT_PEN);
 	  }
 	}
+      }
+      if (colors) {
+        dc.SetBrush(*wxTheBrushList->FindOrCreateBrush(star->color));
       }
       dc.DrawEllipse(star->proj.x-1, star->proj.y-1, 3, 3);
     }

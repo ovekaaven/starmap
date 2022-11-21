@@ -295,6 +295,7 @@ class stardata {
 
   double vmag, bvmag, ubmag, rimag; // magnitudes
   wxString type;  // spectral type
+  wxColour color;
 
   double temp;
 
