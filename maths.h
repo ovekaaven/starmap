@@ -2,12 +2,14 @@
 #define STARMAP_MATHS_H
 
 #include <cmath>
+#include <wx/gdicmn.h>
 
 class Angle
 {
 protected:
   double _rad;
 public:
+  Angle() { _rad = 0.0; }
   explicit Angle(double r) { _rad = r; } // angle (radians)
 
   double rad() const { return _rad; }
@@ -15,8 +17,10 @@ public:
   double sin() const { return ::sin(_rad); }
   double cos() const { return ::cos(_rad); }
 
-  static Angle from_deg(double d) {
-    return Angle(d * M_PI / 180.0); }
+  double operator+=(double d) { return _rad += d; }
+  double operator-=(double d) { return _rad -= d; }
+
+  static Angle from_deg(double d) { return Angle(d * M_PI / 180.0); }
 };
 
 class Transform;
@@ -41,15 +45,31 @@ public:
     y = _y;
     z = _z;
   }
+  double get_x() const { return _x; }
+  double get_y() const { return _y; }
+  double get_z() const { return _z; }
+
+  void flatten() { _z = 0.0; }
+  bool behind() const { return _z < 0.1; }
+  double depth() const { return _z; }
+
+  // perspective projection
+  wxPoint pproject(double s, int xc, int yc) const {
+    return wxPoint(s * _x / _z + xc, s * _y / _z + yc);
+  }
 
   double sqr() const {
     return _x*_x + _y*_y + _z*_z;
   }
-  double sqrt() const {
+  double norm() const {
     return ::sqrt(sqr());
   }
   void normalize() {
-    *this /= sqrt();
+    *this /= norm();
+  }
+
+  Vector multiply(const Vector& v) const {
+    return Vector(_x * v._x, _y * v._y, _z * v._z);
   }
 
   Vector operator+(const Vector& v) const {
@@ -155,6 +175,29 @@ public:
       _r[i][i] = 1.0;
       _t[i] = 0.0;
     }
+  }
+
+  // construct matrix from Euler angles
+  // used for camera orientation in 3D space
+  Transform(Angle pitch, Angle yaw, Angle roll, const Vector &off = Vector::null, bool flip = false)
+  {
+    double s[3], c[3];
+    s[0] = pitch.sin(); c[0] = pitch.cos();
+    s[1] = yaw.sin();   c[1] = yaw.cos();
+    s[2] = roll.sin();  c[2] = roll.cos();
+
+    off.get(_t[0], _t[1], _t[2]);
+
+    if (flip) {
+      s[0] = -s[0];
+      c[0] = -c[0];
+      _t[1] = -_t[1];
+    }
+
+    // rotation order for view matrix: yaw, pitch, roll
+    _r[0][0] = c[1]*c[2]; _r[0][1] = -c[0]*s[2]; _r[0][2] = -s[1]*c[2] -s[0]*s[2];
+    _r[1][0] = c[1]*s[2]; _r[1][1] =  c[0]*c[2]; _r[1][2] = -s[1]*s[2] -s[0]*c[2];
+    _r[2][0] = s[1]*c[0]; _r[2][1] =  s[0];      _r[2][2] =  c[1]*c[0];
   }
 
   // construct matrix from unit vectors

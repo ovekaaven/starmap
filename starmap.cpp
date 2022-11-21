@@ -1,7 +1,10 @@
 #include "starmap.h"
 #include "import.h"
-#include <stdio.h>
+#include <wx/dcclient.h>
+#include <wx/menu.h>
+#include <wx/msgdlg.h>
 #include <wx/rawbmp.h>
+#include <wx/textdlg.h>
 
 #define APP_QUIT    100
 #define APP_ABOUT   101
@@ -13,11 +16,9 @@
 #define APP_SEARCH  300
 #define APP_FILTER  301
 
-const coords coords::null(0, 0, 0);
-
 // some informative stuff
 
-stardesc::stardesc(const stardata *st, coords& ref)
+stardesc::stardesc(const stardata *st, const Vector& ref)
   : star(st),
     prepped(FALSE)
 {
@@ -36,9 +37,9 @@ stardesc::stardesc(const stardata *st, coords& ref)
 	     star->y * LIGHTYEAR_PER_PARSEC,
 	     -star->z * LIGHTYEAR_PER_PARSEC);
   desc << tmp;
-  coords stc(star->x, star->y, star->z);
+  Vector stc(star->x, star->y, star->z);
   stc -= ref;
-  tmp.Printf("Dist: \t%.2f ly\n", (double)distance(stc) * LIGHTYEAR_PER_PARSEC);
+  tmp.Printf("Dist: \t%.2f ly\n", stc.norm() * LIGHTYEAR_PER_PARSEC);
   desc << tmp;
   tmp.Printf("Vmag: \t%.2f\n", star->vmag);
   desc << tmp;
@@ -145,7 +146,7 @@ void StarFrame::Search(wxCommandEvent& WXUNUSED(event) )
     for (const auto &nit : star->names) {
       if (nit.name.Find(str) >= 0) {
 	// found a match, center on it
-	canvas->pos = coords(-star->x, -star->y, canvas->pos.depth());
+	canvas->pos = Vector(-star->x, -star->y, canvas->pos.depth());
 	Refresh();
 	return;
       }
@@ -202,35 +203,35 @@ void StarCanvas::OnChar(wxKeyEvent& event)
   bool flip = menu_bar->IsChecked(APP_FLIP);
   switch(event.GetKeyCode()) {
   case WXK_LEFT:
-    pos += coords(+zoom/10, 0, 0);
+    pos += Vector(+zoom/10.0, 0.0, 0.0);
     Redraw();
     break;
   case WXK_RIGHT:
-    pos += coords(-zoom/10, 0, 0);
+    pos += Vector(-zoom/10.0, 0.0, 0.0);
     Redraw();
     break;
   case WXK_UP:
-    pos += coords(0, flip ? -zoom/10 : +zoom/10, 0);
+    pos += Vector(0.0, flip ? -zoom/10.0 : +zoom/10.0, 0.0);
     Redraw();
     break;
   case WXK_DOWN:
-    pos += coords(0, flip ? +zoom/10 : -zoom/10, 0);
+    pos += Vector(0.0, flip ? +zoom/10.0 : -zoom/10.0, 0.0);
     Redraw();
     break;
   case WXK_PAGEUP:
-    pos += coords(0, 0, -zoom/2);
+    pos += Vector(0.0, 0.0, -zoom/2.0);
     Redraw();
     break;
   case WXK_PAGEDOWN:
-    pos += coords(0, 0, +zoom/2);
+    pos += Vector(0.0, 0.0, +zoom/2.0);
     Redraw();
     break;
   case WXK_HOME:
-    pitch += 5*M_PI/180;
+    pitch += 5.0*M_PI/180.0;
     Redraw();
     break;
   case WXK_END:
-    pitch -= 5*M_PI/180;
+    pitch -= 5.0*M_PI/180.0;
     Redraw();
     break;
   case '+':
@@ -311,7 +312,7 @@ void StarCanvas::OnLeftDown(wxMouseEvent& WXUNUSED(event) )
   // left button click sets the reference point to selected star
   if (!select.empty()) {
     const auto star = select.front();
-    refpos = coords(star->x, star->y, star->z);
+    refpos = Vector(star->x, star->y, star->z);
 
     // recreate descriptions
     CreateDescs();
@@ -397,7 +398,7 @@ void StarCanvas::RenderView()
   dc->SetBackground(*wxBLACK_BRUSH);
   dc->Clear();
 
-  tmatrix cam(pitch, 0, 0, pos, flip);
+  Transform cam(pitch, Angle(), Angle(), pos, flip);
 
   // update frame's status bar
   wxFrame *frame = (wxFrame *)GetParent();
@@ -417,7 +418,7 @@ void StarCanvas::RenderView()
 
   // draw grid
   if (grid && !pos.behind()) {
-    coords grid_pos = flip ? pos.multiply(coords(1,-1,1)) : pos;
+    Vector grid_pos = flip ? pos.multiply(Vector(1.0, -1.0, 1.0)) : pos;
     // not sure of the best way to draw it
     wxPoint origin = grid_pos.pproject(factor, mx, my);
 
@@ -450,7 +451,7 @@ void StarCanvas::RenderView()
 
   // first pass, calculate positions
   for (const auto star : stars) {
-    coords np = star->get_pos() * cam;
+    Vector np = star->get_pos() * cam;
     if (np.behind()) star->show = FALSE; else {
       star->proj = np.pproject(factor, mx, my);
       star->show = area.Contains(star->proj) != wxOutRegion;
@@ -483,9 +484,9 @@ void StarCanvas::RenderView()
   for (const auto star : stars) {
     if (star->show) {
       if (lines) {
-	coords p(star->get_pos());
+	Vector p(star->get_pos());
 	p.flatten();
-	coords np = p * cam;
+	Vector np = p * cam;
 	if (!np.behind()) {
 	  wxPoint bp = np.pproject(factor, mx, my);
 	  // if the endpoint is outside screen, don't plot it
