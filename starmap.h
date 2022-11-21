@@ -310,8 +310,6 @@ class stardata {
   coords get_pos(void)
     { return coords(x, y, z); }
 
-  void calc_temp(void);
-
   // TODO: add other interesting stuff to keep track of
 
 

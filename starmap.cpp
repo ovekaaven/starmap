@@ -1,4 +1,5 @@
 #include "starmap.h"
+#include "import.h"
 #include <stdio.h>
 
 #define APP_QUIT    100
@@ -58,17 +59,13 @@ StarApp::StarApp(void)
 
 bool StarApp::OnInit(void)
 {
-  printf("Loading Gliese star catalog...\n");
-  read_gliese3("gliese/gliese3.dat");
-  printf("Merging Yale bright star catalog...\n");
-  read_bright("bright/catalog.dat", "bright/notes.dat");
-  printf("Loaded %zu stars. Starting...\n", stars.size());
-
   frame = new StarFrame((wxFrame *)NULL, "Starmap", 0, 0, 550, 500);
 
   frame->SetStatusText("Loading...");
   frame->Show(TRUE);
   SetTopWindow(frame);
+
+  import_all();
 
   return TRUE;
 }
