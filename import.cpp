@@ -431,7 +431,7 @@ bool eat_name(wxString pfx)
 
 void add_star(stardata *star)
 {
-  stars.Append(star);
+  stars.push_back(star);
 
   for (const auto& it : star->names) {
     starnames[it.name] = star;

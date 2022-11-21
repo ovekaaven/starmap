@@ -18,7 +18,7 @@ WX_DEFINE_LIST(desclist);
 
 // some informative stuff
 
-stardesc::stardesc(stardata *st, coords& ref)
+stardesc::stardesc(const stardata *st, coords& ref)
   : star(st),
     prepped(FALSE)
 {
@@ -65,7 +65,7 @@ bool StarApp::OnInit(void)
   read_gliese3("gliese/gliese3.dat");
   printf("Merging Yale bright star catalog...\n");
   read_bright("bright/catalog.dat", "bright/notes.dat");
-  printf("Loaded %u stars. Starting...\n", stars.GetCount());
+  printf("Loaded %zu stars. Starting...\n", stars.size());
 
   frame = new StarFrame((wxFrame *)NULL, "Starmap", 0, 0, 550, 500);
 
@@ -144,9 +144,7 @@ void StarFrame::Search(wxCommandEvent& WXUNUSED(event) )
   }
 
   SetStatusText("Searching...");
-  wxstarlistNode *node = stars.GetFirst();
-  while (node) {
-    stardata *star = node->GetData();
+  for (const auto star : stars) {
     for (const auto &nit : star->names) {
       if (nit.name.Find(str) >= 0) {
 	// found a match, center on it
@@ -155,7 +153,6 @@ void StarFrame::Search(wxCommandEvent& WXUNUSED(event) )
 	return;
       }
     }
-    node = node->GetNext();
   }
   SetStatusText("Ready.");
   wxMessageBox("No match found.", "Search", wxOK|wxCENTRE|wxICON_EXCLAMATION, this);
@@ -269,11 +266,8 @@ void StarCanvas::OnMotion(wxMouseEvent& event)
   descpt.y = event.GetY();
 
   // find closest star(s) to pointer
-  select.Clear();
-  wxstarlistNode *node = stars.GetFirst();
-  while (node) {
-    stardata *star = node->GetData();
-
+  select.clear();
+  for (const auto star : stars) {
     if (star->show) {
       xd = star->proj.x - descpt.x;
       if (xd < 0) xd = -xd;
@@ -286,19 +280,17 @@ void StarCanvas::OnMotion(wxMouseEvent& event)
 	if (td < mdist) {
 	  // closer star, clear list and select this
 	  mdist = td;
-	  select.Clear();
-	  select.Append(star);
+	  select.clear();
+	  select.push_back(star);
 	  any = TRUE;
 	}
 	else if (td == mdist) {
 	  // star at same distance, add it to list
-	  select.Append(star);
+	  select.push_back(star);
 	  any = TRUE;
 	}
       }
     }
-
-    node = node->GetNext();
   }
 
   // create descriptions
@@ -317,9 +309,8 @@ void StarCanvas::OnLeaveWindow(wxMouseEvent& WXUNUSED(event) )
 void StarCanvas::OnLeftDown(wxMouseEvent& WXUNUSED(event) )
 {
   // left button click sets the reference point to selected star
-  wxstarlistNode *node = select.GetFirst();
-  if (node) {
-    stardata *star = node->GetData();
+  if (!select.empty()) {
+    const auto star = select.front();
     refpos = coords(star->x, star->y, star->z);
 
     // recreate descriptions
@@ -404,15 +395,12 @@ void StarCanvas::DoPaint(wxDC& dc)
   }
 
   // first pass, calculate positions
-  wxstarlistNode *node = stars.GetFirst();
-  while (node) {
-    stardata *star = node->GetData();
+  for (const auto star : stars) {
     coords np = star->get_pos() * cam;
     if (np.behind()) star->show = FALSE; else {
       star->proj = np.pproject(factor, mx, my);
       star->show = area.Contains(star->proj) != wxOutRegion;
     }
-    node = node->GetNext();
   }
 
   // draw names (before the stars themselves, so the stars come on top)
@@ -420,9 +408,7 @@ void StarCanvas::DoPaint(wxDC& dc)
     dc.SetFont(*wxSMALL_FONT);
     dc.SetBackgroundMode(wxTRANSPARENT);
     dc.SetTextForeground(*wxGREEN);
-    node = stars.GetFirst();
-    while (node) {
-      stardata *star = node->GetData();
+    for (const auto star : stars) {
       if (star->show && !star->names.empty()) {
         const auto &nit = star->names.front();
         if (!star->te) {
@@ -434,16 +420,13 @@ void StarCanvas::DoPaint(wxDC& dc)
         else
           dc.DrawText(nit.name, star->proj.x - star->tw/2, star->proj.y - star->th);
       }
-      node = node->GetNext();
     }
   }
 
   // draw stars
   dc.SetBrush(*wxWHITE_BRUSH);
   dc.SetPen(*wxTRANSPARENT_PEN);
-  node = stars.GetFirst();
-  while (node) {
-    stardata *star = node->GetData();
+  for (const auto star : stars) {
     if (star->show) {
       if (lines) {
 	coords p(star->get_pos());
@@ -462,7 +445,6 @@ void StarCanvas::DoPaint(wxDC& dc)
       }
       dc.DrawEllipse(star->proj.x-1, star->proj.y-1, 3, 3);
     }
-    node = node->GetNext();
   }
 
   // update description boxes
@@ -542,12 +524,9 @@ void StarCanvas::Redraw(bool clr_desc)
 void StarCanvas::CreateDescs(void)
 {
   ClearDescs();
-  wxstarlistNode *node = select.GetFirst();
-  while (node) {
-    stardata *star = node->GetData();
+  for (const auto star : select) {
     stardesc *desc = new stardesc(star, refpos);
     descs.Append(desc);
-    node = node->GetNext();
   }
 }
 

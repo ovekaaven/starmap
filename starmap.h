@@ -323,12 +323,12 @@ extern void read_bright(const char*cname,const char*nname);
 
 class stardesc {
  public:
-  stardata *star;
+  const stardata *star;
   wxString desc;
   bool prepped;
   wxPoint pos;
   wxSize siz;
-  stardesc(stardata *st, coords& ref);
+  stardesc(const stardata *st, coords& ref);
 };
 
 WX_DECLARE_LIST(stardesc, desclist);
@@ -367,7 +367,7 @@ class StarCanvas : public wxWindow
   double zoom;
   bool need_redraw, ready;
 
-  starlist select;
+  std::list<const stardata*> select;
   desclist descs;
   wxPoint descpt;
 
