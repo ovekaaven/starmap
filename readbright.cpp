@@ -39,7 +39,7 @@ bool ReadBright::ReadNext(StarData& data) {
     data.SetName(wxString::Format(wxT("HR %u"), hr), PRI_Harvard);
 
     bool has_bayer = false;
-    ReadDurchmusterung(data, line.substr(14, 11));
+    ReadDurchmusterung(data, line.substr(14, 2), line.substr(16, 3), line.substr(19, 6));
     ReadOtherName(data, wxT("HD "), line.substr(25, 6), PRI_HD);
     ReadOtherName(data, wxT("SAO "), line.substr(31, 6), PRI_SAO);
     ReadOtherName(data, wxT("FK "), line.substr(37, 4), PRI_FK5);
