@@ -363,24 +363,26 @@ static void BlendPixel(wxNativePixelData::Iterator& pixel, wxColour color, bool 
 void StarCanvas::RenderStars()
 {
   bool colors = menu_bar->IsChecked(APP_COLORS);
-  wxNativePixelData data(*bmp);
-  auto pixels = data.GetPixels();
   dc->SelectObject(wxNullBitmap);
-  for (const auto star : stars) {
-    if (star->show &&
-        star->proj.y > 1 && star->proj.y < data.GetHeight() - 1 &&
-        star->proj.x > 1 && star->proj.x < data.GetWidth() - 1) {
-      wxColour color = colors ? star->color : *wxWHITE;
-      pixels.MoveTo(data, star->proj.x, star->proj.y - 1);
-      BlendPixel(pixels, color, colors);
-      pixels.MoveTo(data, star->proj.x - 1, star->proj.y);
-      BlendPixel(pixels, color, colors);
-      pixels++;
-      BlendPixel(pixels, color, colors);
-      pixels++;
-      BlendPixel(pixels, color, colors);
-      pixels.MoveTo(data, star->proj.x, star->proj.y + 1);
-      BlendPixel(pixels, color, colors);
+  {
+    wxNativePixelData data(*bmp);
+    auto pixels = data.GetPixels();
+    for (const auto star : stars) {
+      if (star->show &&
+          star->proj.y > 1 && star->proj.y < data.GetHeight() - 1 &&
+          star->proj.x > 1 && star->proj.x < data.GetWidth() - 1) {
+        wxColour color = colors ? star->color : *wxWHITE;
+        pixels.MoveTo(data, star->proj.x, star->proj.y - 1);
+        BlendPixel(pixels, color, colors);
+        pixels.MoveTo(data, star->proj.x - 1, star->proj.y);
+        BlendPixel(pixels, color, colors);
+        pixels++;
+        BlendPixel(pixels, color, colors);
+        pixels++;
+        BlendPixel(pixels, color, colors);
+        pixels.MoveTo(data, star->proj.x, star->proj.y + 1);
+        BlendPixel(pixels, color, colors);
+      }
     }
   }
   dc->SelectObject(*bmp);
