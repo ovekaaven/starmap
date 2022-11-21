@@ -346,11 +346,17 @@ static wxColour::ChannelType BlendComponent(wxColour::ChannelType a,
 #endif
 }
 
-static void BlendPixel(wxNativePixelData::Iterator& pixel, wxColour color)
+static void BlendPixel(wxNativePixelData::Iterator& pixel, wxColour color, bool colors)
 {
-  pixel.Red()   = BlendComponent(pixel.Red(),   color.Red());
-  pixel.Green() = BlendComponent(pixel.Green(), color.Green());
-  pixel.Blue()  = BlendComponent(pixel.Blue(),  color.Blue());
+  if (colors) {
+    pixel.Red()   = BlendComponent(pixel.Red(),   color.Red());
+    pixel.Green() = BlendComponent(pixel.Green(), color.Green());
+    pixel.Blue()  = BlendComponent(pixel.Blue(),  color.Blue());
+  } else {
+    pixel.Red()   = color.Red();
+    pixel.Green() = color.Green();
+    pixel.Blue()  = color.Blue();
+  }
 }
 
 void StarCanvas::RenderStars()
@@ -364,15 +370,15 @@ void StarCanvas::RenderStars()
         star->proj.x > 1 && star->proj.x < data.GetWidth() - 1) {
       wxColour color = colors ? star->color : *wxWHITE;
       pixels.MoveTo(data, star->proj.x, star->proj.y - 1);
-      BlendPixel(pixels, color);
+      BlendPixel(pixels, color, colors);
       pixels.MoveTo(data, star->proj.x - 1, star->proj.y);
-      BlendPixel(pixels, color);
+      BlendPixel(pixels, color, colors);
       pixels++;
-      BlendPixel(pixels, color);
+      BlendPixel(pixels, color, colors);
       pixels++;
-      BlendPixel(pixels, color);
+      BlendPixel(pixels, color, colors);
       pixels.MoveTo(data, star->proj.x, star->proj.y + 1);
-      BlendPixel(pixels, color);
+      BlendPixel(pixels, color, colors);
     }
   }
 }
