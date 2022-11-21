@@ -202,29 +202,30 @@ void StarCanvas::OnSize(wxSizeEvent& WXUNUSED(event) )
 void StarCanvas::OnChar(wxKeyEvent& event)
 {
   bool flip = menu_bar->IsChecked(APP_FLIP);
+  double factor = event.ControlDown() ? 10.0 : 1.0;
   switch(event.GetKeyCode()) {
   case WXK_LEFT:
-    pos += Vector(+zoom/10.0, 0.0, 0.0);
+    pos += Vector(+zoom/10.0, 0.0, 0.0) * factor;
     Redraw();
     break;
   case WXK_RIGHT:
-    pos += Vector(-zoom/10.0, 0.0, 0.0);
+    pos += Vector(-zoom/10.0, 0.0, 0.0) * factor;
     Redraw();
     break;
   case WXK_UP:
-    pos += Vector(0.0, flip ? -zoom/10.0 : +zoom/10.0, 0.0);
+    pos += Vector(0.0, flip ? -zoom/10.0 : +zoom/10.0, 0.0) * factor;
     Redraw();
     break;
   case WXK_DOWN:
-    pos += Vector(0.0, flip ? +zoom/10.0 : -zoom/10.0, 0.0);
+    pos += Vector(0.0, flip ? +zoom/10.0 : -zoom/10.0, 0.0) * factor;
     Redraw();
     break;
   case WXK_PAGEUP:
-    pos += Vector(0.0, 0.0, -zoom/2.0);
+    pos += Vector(0.0, 0.0, -zoom/2.0) * factor;
     Redraw();
     break;
   case WXK_PAGEDOWN:
-    pos += Vector(0.0, 0.0, +zoom/2.0);
+    pos += Vector(0.0, 0.0, +zoom/2.0) * factor;
     Redraw();
     break;
   case WXK_HOME:
