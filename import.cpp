@@ -190,7 +190,7 @@ enum esystem {
   L,
   LFT,
   LHS,
-  LP,
+  LPM,
   LTT,
   SAO,
   TR,
@@ -216,7 +216,7 @@ struct {
   {"LFT",        "LFT",        LFT},
   {"LHS",        "LHS",        LHS},    // ?
   {"LOWNE",      "LOWNE",      Simple},
-  {"LP",         "LP",         LP},
+  {"LP",         "LP",         LPM},
   {"LTT",        "LTT",        LTT},
   {"Rob",        "Rob",        Simple},
   {"Ross",       "Ross",       Simple},
