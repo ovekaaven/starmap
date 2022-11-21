@@ -293,7 +293,7 @@ class stardata {
   wxCoord tw, th; // text extents
   bool te;        // text extents
 
-  double vmag, bvmag, ubmag, rimag; // magnitudes
+  double vmag; // visual magnitude
   wxString type;  // spectral type
   wxColour color;
 
@@ -333,8 +333,6 @@ WX_DECLARE_LIST(stardata, starlist);
 
 extern starlist stars;
 extern starnamemap starnames;
-extern void read_gliese3(const char*fname);
-extern void read_bright(const char*cname,const char*nname);
 
 class stardesc {
  public:
