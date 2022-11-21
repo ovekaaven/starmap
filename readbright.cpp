@@ -5,8 +5,8 @@
 #include <wx/log.h>
 
 ReadBright::ReadBright(const wxString& directory) {
-  wxFileName catalog_name(directory, wxT("catalog.dat"));
-  wxFileName notes_name(directory, wxT("notes.dat"));
+  wxFileName catalog_name(directory, wxT("catalog"));
+  wxFileName notes_name(directory, wxT("notes"));
 
   if (!OpenStream(_catalog, catalog_name)) {
     return;
