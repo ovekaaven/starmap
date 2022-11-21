@@ -3,7 +3,7 @@
 #include <wx/log.h>
 
 ReadGliese::ReadGliese(const wxString& directory) {
-  wxFileName catalog_name(directory, wxT("gliese3.dat"));
+  wxFileName catalog_name(directory, wxT("catalog.dat"));
 
   OpenStream(_catalog, catalog_name);
 
