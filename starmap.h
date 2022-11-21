@@ -6,6 +6,7 @@
 #endif
 
 #include <list>
+#include <vector>
 
 // some definitions
 
@@ -316,7 +317,16 @@ class stardata {
 
 };
 
-WX_DECLARE_STRING_HASH_MAP(stardata*, starnamemap);
+class starcomp {
+ public:
+  stardata *main;
+  std::vector<stardata*> comp;
+
+  starcomp(void)
+    : main(NULL) {}
+};
+
+WX_DECLARE_STRING_HASH_MAP(starcomp*, starnamemap);
 
 // the user interface
 

@@ -433,8 +433,21 @@ void add_star(stardata *star)
 {
   stars.push_back(star);
 
-  for (const auto& it : star->names) {
-    starnames[it.name] = star;
+  for (const auto& nit : star->names) {
+    starnamemap::iterator it = starnames.find(nit.name);
+    starcomp *comp;
+    if (it != starnames.end()) {
+      comp = it->second;
+    } else {
+      comp = new starcomp;
+      starnames[nit.name] = comp;
+    }
+    if (star->comp > 0) {
+      comp->comp.resize(star->comp);
+      comp->comp[star->comp - 1] = star;
+    } else {
+      comp->main = star;
+    }
   }
 }
 
@@ -454,27 +467,38 @@ static void merge_names(stardata *star, std::list<starname> &dat)
   star->sort_names();
 }
 
-void merge_star(stardata *star)
+bool merge_star(stardata *star)
 {
   for (const auto& nit : star->names) {
     starnamemap::iterator it = starnames.find(nit.name);
     if (it != starnames.end()) {
-      stardata *cstar = it->second;
+      starcomp *comp = it->second;
+      stardata *cstar;
       // in several common naming systems, the component stars of a binary star system
-      // don't necessarily have distinct names, so check the component before merging
-      if (star->comp == cstar->comp) {
+      // don't necessarily have distinct names, so grab the right component before merging
+      if (star->comp > 0) {
+        if (star->comp <= comp->comp.size()) {
+          cstar = comp->comp[star->comp - 1];
+        } else {
+          cstar = NULL;
+        }
+      } else {
+        cstar = comp->main;
+      }
+      if (cstar) {
         // found match, merge
         merge_names(cstar, star->names);
         // delete duplicate
         cstar->merged = TRUE;
         delete star;
-        return;
+        return true;
       }
     }
   }
   // not found, consider it a new star
   star->merged = TRUE;
   add_star(star);
+  return false;
 }
 
 // importer routines
