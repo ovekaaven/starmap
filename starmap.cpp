@@ -13,9 +13,6 @@
 
 const coords coords::null(0, 0, 0);
 
-#include <wx/listimpl.cpp>
-WX_DEFINE_LIST(desclist);
-
 // some informative stuff
 
 stardesc::stardesc(const stardata *st, coords& ref)
@@ -261,7 +258,7 @@ void StarCanvas::OnMotion(wxMouseEvent& event)
   if (!ready) return;
 
   any = FALSE;
-  was = (descs.GetFirst() != NULL);
+  was = !descs.empty();
   descpt.x = event.GetX();
   descpt.y = event.GetY();
 
@@ -302,7 +299,7 @@ void StarCanvas::OnMotion(wxMouseEvent& event)
 void StarCanvas::OnLeaveWindow(wxMouseEvent& WXUNUSED(event) )
 {
   // if cursor left window, remove descriptions
-  if (descs.GetFirst())
+  if (!descs.empty())
     Redraw();
 }
 
@@ -449,19 +446,16 @@ void StarCanvas::DoPaint(wxDC& dc)
 
   // update description boxes
   dc.SetFont(*wxSMALL_FONT);
-  wxdesclistNode *dnode = descs.GetFirst();
-  if (dnode) {
+  if (!descs.empty()) {
     int bw = 0, bh = 0;
     // first, calculate their sizes
-    while (dnode) {
-      stardesc *desc = dnode->GetData();
-      if (!desc->prepped) {
-	desc->siz = CalcBox(dc, desc->desc);
-	desc->prepped = TRUE;
+    for (auto &desc : descs) {
+      if (!desc.prepped) {
+	desc.siz = CalcBox(dc, desc.desc);
+	desc.prepped = TRUE;
       }
-      bw += desc->siz.x;
-      if (desc->siz.y > bh) bh = desc->siz.y;
-      dnode = dnode->GetNext();
+      bw += desc.siz.x;
+      if (desc.siz.y > bh) bh = desc.siz.y;
     }
 
     // calculate appropriate position
@@ -473,13 +467,10 @@ void StarCanvas::DoPaint(wxDC& dc)
     else doff.y = descpt.y;
 
     // place and draw boxes
-    dnode = descs.GetFirst();
-    while (dnode) {
-      stardesc *desc = dnode->GetData();
-      desc->pos = doff;
-      doff.x += desc->siz.x;
-      ShowBox(dc, desc->desc, desc->pos);
-      dnode = dnode->GetNext();
+    for (auto &desc : descs) {
+      desc.pos = doff;
+      doff.x += desc.siz.x;
+      ShowBox(dc, desc.desc, desc.pos);
     }
   }
 
@@ -525,20 +516,13 @@ void StarCanvas::CreateDescs(void)
 {
   ClearDescs();
   for (const auto star : select) {
-    stardesc *desc = new stardesc(star, refpos);
-    descs.Append(desc);
+    descs.emplace_back(star, refpos);
   }
 }
 
 void StarCanvas::ClearDescs(void)
 {
-  wxdesclistNode *node = descs.GetFirst();
-  while (node) {
-    stardesc *desc = node->GetData();
-    delete desc;
-    delete node;
-    node = descs.GetFirst();
-  }
+  descs.clear();
 }
 
 wxSize StarCanvas::CalcBox(wxDC& dc, wxString txt, int *tabpos)

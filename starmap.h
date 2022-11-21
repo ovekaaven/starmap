@@ -331,8 +331,6 @@ class stardesc {
   stardesc(const stardata *st, coords& ref);
 };
 
-WX_DECLARE_LIST(stardesc, desclist);
-
 class StarApp : public wxApp
 {
  public:
@@ -368,7 +366,7 @@ class StarCanvas : public wxWindow
   bool need_redraw, ready;
 
   std::list<const stardata*> select;
-  desclist descs;
+  std::list<stardesc> descs;
   wxPoint descpt;
 
   StarCanvas(wxFrame *parent);
