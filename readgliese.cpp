@@ -264,9 +264,9 @@ void ReadGliese::RemarkReader::Read() {
       {"Ross", PRI_Simple},
       {"S", PRI_Simple}, // "[SLO58]" in SIMBAD
       {"SAO", PRI_SAO},
-      {"SM", PRI_Simple, "Smethells"},
+      {"SM", PRI_Simple, "Sm"}, // "Smethells" in SIMBAD
       {"San", PRI_Simple},
-      {"Sm", PRI_Simple, "Smethells"},
+      {"Sm", PRI_Simple}, // "Smethells" in SIMBAD
       {"Stein", PRI_Simple},
       {"Steph", PRI_Simple},
       {"TR", PRI_Simple}, // not in SIMBAD?
