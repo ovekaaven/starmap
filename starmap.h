@@ -41,18 +41,18 @@ class angle_ra : public angle // right ascension (hours)
 {
  public:
   angle_ra(unsigned h, double m)
-    : angle( (h + (m/60)) * M_PI / 12 ) {}
-  angle_ra(unsigned h, unsigned m, unsigned s)
-    : angle( ((h*3600) + (m*60) + s) * M_PI / 43200 ) {}
+    : angle( ((h*60) + m) * M_PI / (12*60) ) {}
+  angle_ra(unsigned h, unsigned m, double s)
+    : angle( ((h*3600) + (m*60) + s) * M_PI / (12*3600) ) {}
 };
 
 class angle_de : public angle // declination (degrees)
 {
  public:
   angle_de(unsigned d, double m, char sg)
-    : angle( (d + (m/60)) * M_PI / 180 )
+    : angle( ((d*60) + m) * M_PI / (180*60) )
     {if (sg == '-') { dat = -dat; }}
-  angle_de(unsigned d, unsigned m, unsigned s, char sg)
+  angle_de(unsigned d, unsigned m, double s, char sg)
     : angle( ((d*3600) + (m*60) + s) * M_PI / (180*3600) )
     {if (sg == '-') { dat = -dat; }}
 };
@@ -233,22 +233,29 @@ class tmatrix {
     vy.get(r[1][0], r[1][1], r[1][2]);
     vu.get(r[2][0], r[2][1], r[2][2]);
   }
-  void transpose(void)
+  void invert(void)
   {
     unsigned i, j;
+    // To invert the rotation matrix, we only need to transpose it.
     for (i=0; i<2; i++)
       for (j=i+1; j<3; j++) {
 	double n = r[i][j];
 	r[i][j] = r[j][i];
 	r[j][i] = n;
       }
-    // probably have to handle t too, not sure how yet
+    // To invert the translation, we need to multiply it with the
+    // inverted transform and negate the result.
+    double o[3];
+    for (i=0; i<3; i++)
+      o[i] = t[i];
+    for (i=0; i<3; i++)
+      t[i] = -(o[0]*r[i][0] + o[1]*r[i][1] + o[2]*r[i][2]);
   }
   tmatrix operator!()
   {
     // reverse matrix
     tmatrix m(*this);
-    m.transpose();
+    m.invert();
     return m;
   }
   friend class coords;
@@ -256,10 +263,9 @@ class tmatrix {
 
 inline coords coords::operator*(const tmatrix& m) const
 {
-  coords n(cx+m.t[0], cy+m.t[1], cz+m.t[2]);
-  return coords(n.cx*m.r[0][0] + n.cy*m.r[0][1] + n.cz*m.r[0][2],
-		n.cx*m.r[1][0] + n.cy*m.r[1][1] + n.cz*m.r[1][2],
-		n.cx*m.r[2][0] + n.cy*m.r[2][1] + n.cz*m.r[2][2]);
+  return coords(cx*m.r[0][0] + cy*m.r[0][1] + cz*m.r[0][2] + m.t[0],
+		cx*m.r[1][0] + cy*m.r[1][1] + cz*m.r[1][2] + m.t[1],
+		cx*m.r[2][0] + cy*m.r[2][1] + cz*m.r[2][2] + m.t[2]);
 }
 
 // the program's internal star representation
@@ -301,7 +307,7 @@ class stardata {
   void set_pos(const coords&pos)
     { pos.get(x, y, z); }
   coords get_pos(void)
-    { coords n(x, y, z); return n; }
+    { return coords(x, y, z); }
 
   void calc_temp(void);
 
