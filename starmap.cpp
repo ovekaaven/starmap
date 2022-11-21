@@ -365,6 +365,7 @@ void StarCanvas::RenderStars()
   bool colors = menu_bar->IsChecked(APP_COLORS);
   wxNativePixelData data(*bmp);
   auto pixels = data.GetPixels();
+  dc->SelectObject(wxNullBitmap);
   for (const auto star : stars) {
     if (star->show &&
         star->proj.y > 1 && star->proj.y < data.GetHeight() - 1 &&
@@ -382,6 +383,7 @@ void StarCanvas::RenderStars()
       BlendPixel(pixels, color, colors);
     }
   }
+  dc->SelectObject(*bmp);
 }
 
 void StarCanvas::RenderView()
