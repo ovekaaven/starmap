@@ -6,6 +6,7 @@
 #endif
 
 #include <list>
+#include <memory>
 #include <vector>
 
 // some definitions
@@ -376,7 +377,9 @@ class StarCanvas : public wxWindow
   coords pos, refpos;
   angle pitch;
   double zoom;
-  bool need_redraw, ready;
+  bool need_realloc, need_render, need_paint, ready;
+  std::unique_ptr<wxBitmap> bmp;
+  std::unique_ptr<wxMemoryDC> dc;
 
   std::list<const stardata*> select;
   std::list<stardesc> descs;
@@ -392,13 +395,16 @@ class StarCanvas : public wxWindow
   void OnLeftDown(wxMouseEvent& event);
   void OnIdle(wxIdleEvent& event);
   void OnPaint(wxPaintEvent& event);
-  void DoPaint(wxDC& dc);
-  void DoRedraw(void);
-  void Redraw(bool clr_desc = TRUE);
+  void RenderStars();
+  void RenderView();
+  void DoPaint(wxDC& pdc);
+  void DoRepaint(void);
+  void Redraw();
+  void Repaint(bool clr_desc = TRUE);
   void CreateDescs(void);
   void ClearDescs(void);
-  wxSize CalcBox(wxDC& dc, wxString txt, int *tabpos = (int *)NULL);
-  void ShowBox(wxDC& dc, wxString txt, wxPoint pos);
+  wxSize CalcBox(wxDC& pdc, wxString txt, int *tabpos = (int *)NULL);
+  void ShowBox(wxDC& pdc, wxString txt, wxPoint pos);
 
   DECLARE_EVENT_TABLE()
 };

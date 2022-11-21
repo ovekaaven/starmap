@@ -1,10 +1,10 @@
 #include "starmap.h"
 #include "import.h"
 #include <stdio.h>
+#include <wx/rawbmp.h>
 
 #define APP_QUIT    100
 #define APP_ABOUT   101
-#define APP_FLICKER 200
 #define APP_NAMES   201
 #define APP_GRID    202
 #define APP_LINES   203
@@ -81,7 +81,6 @@ StarFrame::StarFrame(wxFrame *frame, const char *title, int x, int y, int w, int
   wxMenu *file_menu = new wxMenu;
   file_menu->Append(APP_QUIT, "E&xit", "Quit Starmap");
   wxMenu *option_menu = new wxMenu;
-  option_menu->Append(APP_FLICKER,"&Flicker", "Trades speed against flicker", TRUE);
   option_menu->Append(APP_NAMES,  "&Names", "Show star names", TRUE);
   option_menu->Append(APP_GRID,   "&Grid", "Show grid", TRUE);
   option_menu->Append(APP_LINES,  "&Lines", "Show lines to galactic plane", TRUE);
@@ -129,7 +128,7 @@ void StarFrame::About(wxCommandEvent& WXUNUSED(event) )
 
 void StarFrame::Option(wxCommandEvent& WXUNUSED(event) )
 {
-  Refresh();
+  canvas->Redraw();
 }
 
 void StarFrame::Search(wxCommandEvent& WXUNUSED(event) )
@@ -172,7 +171,9 @@ StarCanvas::StarCanvas(wxFrame *parent)
     refpos(0, 0, SOL_Z_OFFSET), // use Sol's position as initial ref
     pitch(0),
     zoom(0.5),
-    need_redraw(FALSE),
+    need_realloc(FALSE),
+    need_render(FALSE),
+    need_paint(FALSE),
     ready(FALSE)
 {
   SetBackgroundColour(*wxBLACK);
@@ -192,7 +193,8 @@ END_EVENT_TABLE()
 
 void StarCanvas::OnSize(wxSizeEvent& WXUNUSED(event) )
 {
-  Refresh();
+  need_realloc = TRUE;
+  need_render = TRUE;
 }
 
 void StarCanvas::OnChar(wxKeyEvent& event)
@@ -294,7 +296,7 @@ void StarCanvas::OnMotion(wxMouseEvent& event)
   // create descriptions
   CreateDescs();
 
-  if (any || was) Redraw(FALSE);
+  if (any || was) Repaint(FALSE);
 }
 
 void StarCanvas::OnLeaveWindow(wxMouseEvent& WXUNUSED(event) )
@@ -313,23 +315,67 @@ void StarCanvas::OnLeftDown(wxMouseEvent& WXUNUSED(event) )
 
     // recreate descriptions
     CreateDescs();
-    Redraw(FALSE);
+    Repaint(FALSE);
   }
 }
 
 void StarCanvas::OnIdle(wxIdleEvent& WXUNUSED(event) )
 {
-  if (need_redraw) DoRedraw();
+  if (need_render) RenderView();
+  if (need_paint) DoRepaint();
 }
 
 void StarCanvas::OnPaint(wxPaintEvent& WXUNUSED(event) )
 {
-  wxPaintDC dc(this);
-  dc.SetBackground(*wxBLACK_BRUSH); // just in case
-  DoPaint(dc);
+  wxPaintDC pdc(this);
+  DoPaint(pdc);
 }
 
-void StarCanvas::DoPaint(wxDC& dc)
+static wxColour::ChannelType BlendComponent(wxColour::ChannelType a,
+                                            wxColour::ChannelType b)
+{
+#if 1
+  // Screen
+  return 255 - (255 - a) * (255 - b) / 255;
+#else
+  // Saturated add
+  unsigned sum = a + b;
+  return sum <= 255 ? sum : 255;
+#endif
+}
+
+static void BlendPixel(wxNativePixelData::Iterator& pixel, wxColour color)
+{
+  pixel.Red()   = BlendComponent(pixel.Red(),   color.Red());
+  pixel.Green() = BlendComponent(pixel.Green(), color.Green());
+  pixel.Blue()  = BlendComponent(pixel.Blue(),  color.Blue());
+}
+
+void StarCanvas::RenderStars()
+{
+  bool colors = menu_bar->IsChecked(APP_COLORS);
+  wxNativePixelData data(*bmp);
+  auto pixels = data.GetPixels();
+  for (const auto star : stars) {
+    if (star->show &&
+        star->proj.y > 1 && star->proj.y < data.GetHeight() - 1 &&
+        star->proj.x > 1 && star->proj.x < data.GetWidth() - 1) {
+      wxColour color = colors ? star->color : *wxWHITE;
+      pixels.MoveTo(data, star->proj.x, star->proj.y - 1);
+      BlendPixel(pixels, color);
+      pixels.MoveTo(data, star->proj.x - 1, star->proj.y);
+      BlendPixel(pixels, color);
+      pixels++;
+      BlendPixel(pixels, color);
+      pixels++;
+      BlendPixel(pixels, color);
+      pixels.MoveTo(data, star->proj.x, star->proj.y + 1);
+      BlendPixel(pixels, color);
+    }
+  }
+}
+
+void StarCanvas::RenderView()
 {
   wxSize siz(GetClientSize());
   wxRect rect(wxPoint(0, 0), siz);
@@ -339,8 +385,17 @@ void StarCanvas::DoPaint(wxDC& dc)
   bool names = menu_bar->IsChecked(APP_NAMES);
   bool grid = menu_bar->IsChecked(APP_GRID);
   bool lines = menu_bar->IsChecked(APP_LINES);
-  bool colors = menu_bar->IsChecked(APP_COLORS);
   bool flip = menu_bar->IsChecked(APP_FLIP);
+
+  if (!bmp || need_realloc) {
+    bmp = std::make_unique<wxBitmap>(siz.GetX(), siz.GetY(), 24);
+    dc = std::make_unique<wxMemoryDC>();
+    dc->SelectObject(*bmp);
+    need_realloc = FALSE;
+  }
+
+  dc->SetBackground(*wxBLACK_BRUSH);
+  dc->Clear();
 
   tmatrix cam(pitch, 0, 0, pos, flip);
 
@@ -378,17 +433,17 @@ void StarCanvas::DoPaint(wxDC& dc)
     while (top < 0) top += fac;
 
     // draw grid with gray pen
-    dc.SetPen(*wxGREY_PEN);
+    dc->SetPen(*wxGREY_PEN);
 
     while (left < siz.GetX()) {
       long x = (long)left;
-      dc.DrawLine(x, 0, x, siz.GetY());
+      dc->DrawLine(x, 0, x, siz.GetY());
       left += fac;
     }
 
     while (top < siz.GetY()) {
       long y = (long)top;
-      dc.DrawLine(0, y, siz.GetX(), y);
+      dc->DrawLine(0, y, siz.GetX(), y);
       top += fac;
     }
   }
@@ -404,27 +459,27 @@ void StarCanvas::DoPaint(wxDC& dc)
 
   // draw names (before the stars themselves, so the stars come on top)
   if (names) {
-    dc.SetFont(*wxSMALL_FONT);
-    dc.SetBackgroundMode(wxTRANSPARENT);
-    dc.SetTextForeground(*wxGREEN);
+    dc->SetFont(*wxSMALL_FONT);
+    dc->SetBackgroundMode(wxTRANSPARENT);
+    dc->SetTextForeground(*wxGREEN);
     for (const auto star : stars) {
       if (star->show && !star->names.empty()) {
         const auto &nit = star->names.front();
         if (!star->te) {
-          dc.GetTextExtent(nit.name, &star->tw, &star->th);
+          dc->GetTextExtent(nit.name, &star->tw, &star->th);
           star->te = TRUE;
         }
         if (star->comp) // binary/trinary star systems or something?
-          dc.DrawText(nit.name, star->proj.x - star->tw/2, star->proj.y + star->th * (star->comp - 2));
+          dc->DrawText(nit.name, star->proj.x - star->tw/2, star->proj.y + star->th * (star->comp - 2));
         else
-          dc.DrawText(nit.name, star->proj.x - star->tw/2, star->proj.y - star->th);
+          dc->DrawText(nit.name, star->proj.x - star->tw/2, star->proj.y - star->th);
       }
     }
   }
 
   // draw stars
-  dc.SetBrush(*wxWHITE_BRUSH);
-  dc.SetPen(*wxTRANSPARENT_PEN);
+  dc->SetBrush(*wxWHITE_BRUSH);
+  dc->SetPen(*wxTRANSPARENT_PEN);
   for (const auto star : stars) {
     if (star->show) {
       if (lines) {
@@ -436,28 +491,41 @@ void StarCanvas::DoPaint(wxDC& dc)
 	  // if the endpoint is outside screen, don't plot it
 	  // even if the star is inside, to avoid clutter and slowdown
 	  if (area.Contains(bp) != wxOutRegion) {
-	    dc.SetPen(*wxCYAN_PEN);
-	    dc.DrawLine(bp.x, bp.y, star->proj.x, star->proj.y);
-	    dc.SetPen(*wxTRANSPARENT_PEN);
+	    dc->SetPen(*wxCYAN_PEN);
+	    dc->DrawLine(bp.x, bp.y, star->proj.x, star->proj.y);
+	    dc->SetPen(*wxTRANSPARENT_PEN);
 	  }
 	}
       }
-      if (colors) {
-        dc.SetBrush(*wxTheBrushList->FindOrCreateBrush(star->color));
-      }
-      dc.DrawEllipse(star->proj.x-1, star->proj.y-1, 3, 3);
     }
   }
 
+  RenderStars();
+  need_render = FALSE;
+  need_paint = TRUE;
+
+  frame->SetStatusText("Ready.", 0);
+  ready = TRUE;
+}
+
+void StarCanvas::DoPaint(wxDC& pdc)
+{
+  if (!bmp) return;
+
+  wxSize siz(GetClientSize());
+  int mx = siz.GetX()/2, my = siz.GetY()/2;
+
+  pdc.Blit(0, 0, siz.GetX(), siz.GetY(), dc.get(), 0, 0, wxCOPY, FALSE);
+
   // update description boxes
-  dc.SetFont(*wxSMALL_FONT);
+  pdc.SetFont(*wxSMALL_FONT);
   if (!descs.empty()) {
     int bw = 0, bh = 0;
     // first, calculate their sizes
     for (auto &desc : descs) {
       if (!desc.prepped) {
-	desc.siz = CalcBox(dc, desc.desc);
-	desc.prepped = TRUE;
+        desc.siz = CalcBox(pdc, desc.desc);
+        desc.prepped = TRUE;
       }
       bw += desc.siz.x;
       if (desc.siz.y > bh) bh = desc.siz.y;
@@ -475,46 +543,28 @@ void StarCanvas::DoPaint(wxDC& dc)
     for (auto &desc : descs) {
       desc.pos = doff;
       doff.x += desc.siz.x;
-      ShowBox(dc, desc.desc, desc.pos);
+      ShowBox(pdc, desc.desc, desc.pos);
     }
   }
-
-  frame->SetStatusText("Ready.", 0);
-  ready = TRUE;
 }
 
-void StarCanvas::DoRedraw(void)
+void StarCanvas::DoRepaint(void)
 {
-  if (menu_bar->IsChecked(APP_FLICKER)) {
-    // the fast way, with flicker
-    wxClientDC dc(this);
-
-    dc.SetBackground(*wxBLACK_BRUSH);
-    dc.Clear();
-    DoPaint(dc);
-  } else {
-    // the flicker-free slow way: paint to memory bitmap first
-    wxSize siz(GetClientSize());
-    wxBitmap surf(siz.GetX(), siz.GetY());
-    wxMemoryDC dc;
-    dc.SelectObject(surf);
-
-    dc.SetBackground(*wxBLACK_BRUSH);
-    dc.Clear();
-    DoPaint(dc);
-
-    // then copy to window
-    // (someone please implement MIT-SHM in wxGTK?)
-    wxClientDC pdc(this);
-    pdc.Blit(0, 0, siz.GetX(), siz.GetY(), &dc, 0, 0, wxCOPY, FALSE);
-  }
-  need_redraw = FALSE;
+  wxClientDC pdc(this);
+  DoPaint(pdc);
+  need_paint = FALSE;
 }
 
-void StarCanvas::Redraw(bool clr_desc)
+void StarCanvas::Redraw()
+{
+  ClearDescs();
+  need_render = TRUE;
+}
+
+void StarCanvas::Repaint(bool clr_desc)
 {
   if (clr_desc) ClearDescs();
-  need_redraw = TRUE;
+  need_paint = TRUE;
 }
 
 void StarCanvas::CreateDescs(void)
@@ -530,7 +580,7 @@ void StarCanvas::ClearDescs(void)
   descs.clear();
 }
 
-wxSize StarCanvas::CalcBox(wxDC& dc, wxString txt, int *tabpos)
+wxSize StarCanvas::CalcBox(wxDC& pdc, wxString txt, int *tabpos)
 {
   const wxChar *dat = txt.wx_str();
   const wxChar *next;
@@ -543,7 +593,7 @@ wxSize StarCanvas::CalcBox(wxDC& dc, wxString txt, int *tabpos)
   do {
     next = wxStrpbrk(dat, wxT("\t\n"));
     len = next ? (next - dat) : wxStrlen(dat);
-    dc.GetTextExtent(wxString(dat, len), &w, &h);
+    pdc.GetTextExtent(wxString(dat, len), &w, &h);
     if (h > ch) ch = h;
     if (w > cw[cp]) cw[cp] = w;
     if ((!next) || (*next == '\n')) {
@@ -567,29 +617,29 @@ wxSize StarCanvas::CalcBox(wxDC& dc, wxString txt, int *tabpos)
   return ret;
 }
 
-void StarCanvas::ShowBox(wxDC& dc, wxString txt, wxPoint pos)
+void StarCanvas::ShowBox(wxDC& pdc, wxString txt, wxPoint pos)
 {
   int tabpos[2], cp = 0;
-  wxSize siz = CalcBox(dc, txt, tabpos);
+  wxSize siz = CalcBox(pdc, txt, tabpos);
   const wxChar *dat = txt.wx_str();
   const wxChar *next;
   wxCoord ch = 0, h;
   size_t len;
 
-  dc.SetBrush(*wxBLACK_BRUSH);
-  dc.SetPen(*wxWHITE_PEN);
-  dc.DrawRectangle(pos.x, pos.y, siz.x, siz.y);
+  pdc.SetBrush(*wxBLACK_BRUSH);
+  pdc.SetPen(*wxWHITE_PEN);
+  pdc.DrawRectangle(pos.x, pos.y, siz.x, siz.y);
   pos.x += 2;
   pos.y += 2;
 
-  dc.SetBackgroundMode(wxTRANSPARENT);
-  dc.SetTextForeground(*wxGREEN);
+  pdc.SetBackgroundMode(wxTRANSPARENT);
+  pdc.SetTextForeground(*wxGREEN);
 
   do {
     next = wxStrpbrk(dat, wxT("\t\n"));
     len = next ? (next - dat) : wxStrlen(dat);
-    dc.DrawText(wxString(dat, len), pos.x + tabpos[cp], pos.y);
-    dc.GetTextExtent(wxString(dat, len), NULL, &h);
+    pdc.DrawText(wxString(dat, len), pos.x + tabpos[cp], pos.y);
+    pdc.GetTextExtent(wxString(dat, len), NULL, &h);
     if (h > ch) ch = h;
     if ((!next) || (*next == '\n')) {
       pos.y += ch;
