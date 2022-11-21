@@ -1,11 +1,9 @@
 #include "maths.h"
 #include <list>
 #include <memory>
-#include <vector>
 #include <wx/app.h>
 #include <wx/dcmemory.h>
 #include <wx/frame.h>
-#include <wx/list.h>
 
 // some definitions
 
@@ -21,79 +19,18 @@
 #define LIGHTSEC 299792.458 // km/s
 #define PRECESSION 5028.83  // arcsec/century
 
-// the program's internal star representation
-
-class starname {
- public:
-  wxString name;
-  int priority;
-  starname(wxString nam, int pri) : name(nam), priority(pri) {}
-  starname(const starname& other) : name(other.name), priority(other.priority) {}
-  bool operator<(const starname& other) { return priority < other.priority; }
-  bool operator>(const starname& other) { return priority > other.priority; }
-};
-
-class stardata {
- public:
-  bool merged;
-  std::list<starname> names;
-  int comp;
-
-  double x, y, z; // star coordinates (parsecs, heliocentric)
-  wxPoint proj;   // current projection point
-  bool show;      // current visibility
-  wxCoord tw, th; // text extents
-  bool te;        // text extents
-
-  double vmag; // visual magnitude
-  wxString type;  // spectral type
-  wxColour color;
-
-  double temp;
-
-  wxString remarks; // remarks
-
-  stardata(void)
-    : merged(FALSE), te(FALSE) {}
-  void sort_names(void);
-  bool has_name(const wxString& name);
-
-  void set_pos(const Vector&pos)
-    { pos.get(x, y, z); }
-  Vector get_pos(void)
-    { return Vector(x, y, z); }
-
-  // TODO: add other interesting stuff to keep track of
-
-
-};
-
-class starcomp {
- public:
-  stardata *main;
-  std::vector<stardata*> comp;
-
-  starcomp(void)
-    : main(NULL) {}
-};
-
-WX_DECLARE_STRING_HASH_MAP(starcomp*, starnamemap);
+class Star;
 
 // the user interface
 
-WX_DECLARE_LIST(stardata, starlist);
-
-extern starlist stars;
-extern starnamemap starnames;
-
 class stardesc {
  public:
-  const stardata *star;
+  const Star *star;
   wxString desc;
   bool prepped;
   wxPoint pos;
   wxSize siz;
-  stardesc(const stardata *st, const Vector& ref);
+  stardesc(const Star *st, const Vector& ref);
 };
 
 class StarApp : public wxApp
@@ -132,7 +69,7 @@ class StarCanvas : public wxWindow
   std::unique_ptr<wxBitmap> bmp;
   std::unique_ptr<wxMemoryDC> dc;
 
-  std::list<const stardata*> select;
+  std::list<const Star*> select;
   std::list<stardesc> descs;
   wxPoint descpt;
 

@@ -3,6 +3,7 @@
 
 #include "colors.h"
 #include "maths.h"
+#include "starlist.h"
 
 #include <list>
 #include <boost/iostreams/filtering_stream.hpp>
@@ -12,16 +13,6 @@
 
 class ReadBase {
 public:
-
-  struct StarName {
-    wxString name;
-    int priority = 0;
-    StarName() = default;
-    StarName(const wxString& n, int p) : name(n), priority(p) {}
-    // StarName(const StarName& other) : name(other.name), priority(other.priority) {}
-    bool operator<(const StarName& other) const { return priority < other.priority; }
-    bool operator>(const StarName& other) const { return priority > other.priority; }
-  };
 
   struct StarData {
     bool is3d = false;

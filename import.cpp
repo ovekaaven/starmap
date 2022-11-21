@@ -1,36 +1,25 @@
 #include "import.h"
 #include "readbright.h"
 #include "readgliese.h"
-#include "starmap.h"
-
-#include <wx/listimpl.cpp>
-WX_DEFINE_LIST(starlist);
+#include <vector>
+#include <wx/log.h>
 
 const double min_vmag = 5.0; // magnitude that maps to darkest color
 const double max_vmag = -3.0; // magnitude that maps to brightest color
 const float min_factor = 0.1f; // ensures stars don't get too dark to see
 
-starlist stars;
+class starcomp {
+public:
+  Star *main;
+  std::vector<Star*> comp;
+
+  starcomp(): main(NULL) {}
+};
+
+WX_DECLARE_STRING_HASH_MAP(starcomp*, starnamemap);
 starnamemap starnames;
 
-void stardata::sort_names()
-{
-  names.sort();
-}
-
-bool stardata::has_name(const wxString& name)
-{
-  for (const auto &nit : names) {
-    if (nit.name == name) return true;
-  }
-  return false;
-}
-
-starname to_starname(const ReadBase::StarName& name) {
-  return starname(name.name, name.priority);
-}
-
-static void register_name(stardata *star, const wxString& name, int ncomp)
+static void register_name(Star *star, const wxString& name, int ncomp)
 {
   starnamemap::iterator it = starnames.find(name);
   starcomp *comp;
@@ -50,7 +39,7 @@ static void register_name(stardata *star, const wxString& name, int ncomp)
   }
 }
 
-static void add_star(stardata *star)
+static void add_star(Star *star)
 {
   stars.push_back(star);
 
@@ -59,7 +48,7 @@ static void add_star(stardata *star)
   }
 }
 
-static void merge_names(stardata *star, std::list<starname> &dat, int comp)
+static void merge_names(Star *star, std::list<StarName> &dat, int comp)
 {
   auto nit = dat.begin();
   while (nit != dat.end()) {
@@ -77,14 +66,14 @@ static void merge_names(stardata *star, std::list<starname> &dat, int comp)
   star->sort_names();
 }
 
-static bool merge_star(stardata *star)
+static bool merge_star(Star *star)
 {
   bool problem = false;
   for (const auto& nit : star->names) {
     starnamemap::iterator it = starnames.find(nit.name);
     if (it != starnames.end()) {
       starcomp *comp = it->second;
-      stardata *cstar;
+      Star *cstar;
       // in several common naming systems, the component stars of a binary star system
       // don't necessarily have distinct names, so grab the right component before merging
       if (star->comp > 0) {
@@ -117,9 +106,9 @@ static bool merge_star(stardata *star)
           // Seems this name was registered with components. If this is a naming
           // system that has distinct names for components, we should only find
           // one component. If so, it should be safe enough to merge with it.
-          stardata* found = nullptr;
+          Star* found = nullptr;
           bool multiple = false;
-          for (stardata* c : comp->comp) {
+          for (Star* c : comp->comp) {
             if (!c) continue;
             if (!found) found = c;
             else multiple = true;
@@ -149,7 +138,6 @@ static bool merge_star(stardata *star)
           // binary systems without too much overlapping text
           cstar->comp = star->comp;
         }
-        cstar->merged = TRUE;
         delete star;
         return true;
       }
@@ -159,7 +147,6 @@ static bool merge_star(stardata *star)
     wxLogVerbose(wxT("Merge of %s seems to have failed because of problem"), star->names.front().name);
   }
   // not found, consider it a new star
-  star->merged = TRUE;
   add_star(star);
   return false;
 }
@@ -179,8 +166,8 @@ void import_catalog(ReadBase& importer) {
     mag_factor = std::max(mag_factor, 0.0f) * (1.0f - min_factor) + min_factor;
 
     // Copy data to final data structure
-    stardata* star = new stardata;
-    data.position.get(star->x, star->y, star->z);
+    Star* star = new Star;
+    star->pos = data.position;
     star->vmag = data.vmag;
     star->type = data.spectral_type;
     star->temp = data.temperature;
@@ -193,9 +180,9 @@ void import_catalog(ReadBase& importer) {
     } else {
       star->comp = 0;
     }
-    star->names.push_back(to_starname(data.name));
+    star->names.push_back(data.name);
     for (const auto& name : data.other_names) {
-      star->names.push_back(to_starname(name));
+      star->names.push_back(name);
     }
     star->sort_names();
 

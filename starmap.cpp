@@ -1,4 +1,5 @@
 #include "starmap.h"
+#include "starlist.h"
 #include "import.h"
 #include <wx/dcclient.h>
 #include <wx/menu.h>
@@ -18,7 +19,7 @@
 
 // some informative stuff
 
-stardesc::stardesc(const stardata *st, const Vector& ref)
+stardesc::stardesc(const Star *st, const Vector& ref)
   : star(st),
     prepped(FALSE)
 {
@@ -33,11 +34,11 @@ stardesc::stardesc(const stardata *st, const Vector& ref)
     desc << "Type: \t" << star->type << '\n';
   tmp.Printf("Pos: \t(%+.2f,%+.2f,%+.2f)\n",
 	     // use units which seem natural for the user
-	     star->x * LIGHTYEAR_PER_PARSEC,
-	     star->y * LIGHTYEAR_PER_PARSEC,
-	     -star->z * LIGHTYEAR_PER_PARSEC);
+	     star->pos.get_x() * LIGHTYEAR_PER_PARSEC,
+	     star->pos.get_y() * LIGHTYEAR_PER_PARSEC,
+	     -star->pos.get_z() * LIGHTYEAR_PER_PARSEC);
   desc << tmp;
-  Vector stc(star->x, star->y, star->z);
+  Vector stc(star->pos);
   stc -= ref;
   tmp.Printf("Dist: \t%.2f ly\n", stc.norm() * LIGHTYEAR_PER_PARSEC);
   desc << tmp;
@@ -146,7 +147,7 @@ void StarFrame::Search(wxCommandEvent& WXUNUSED(event) )
     for (const auto &nit : star->names) {
       if (nit.name.Find(str) >= 0) {
 	// found a match, center on it
-	canvas->pos = Vector(-star->x, -star->y, canvas->pos.depth());
+	canvas->pos = Vector(-star->pos.get_x(), -star->pos.get_y(), canvas->pos.depth());
 	Refresh();
 	return;
       }
@@ -312,7 +313,7 @@ void StarCanvas::OnLeftDown(wxMouseEvent& WXUNUSED(event) )
   // left button click sets the reference point to selected star
   if (!select.empty()) {
     const auto star = select.front();
-    refpos = Vector(star->x, star->y, star->z);
+    refpos = star->pos;
 
     // recreate descriptions
     CreateDescs();
