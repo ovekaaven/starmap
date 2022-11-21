@@ -186,7 +186,7 @@ class tmatrix {
     if (flip) {
       s[0] = -s[0];
       c[0] = -c[0];
-      t[2] = -t[2];
+      t[1] = -t[1];
     }
 
     // rotation order for view matrix: yaw, pitch, roll
