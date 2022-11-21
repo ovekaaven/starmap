@@ -19,6 +19,7 @@ struct StarName {
 
 class Star {
 public:
+  bool is3d;
   std::list<StarName> names;
   int comp;
 

@@ -41,7 +41,9 @@ static void register_name(Star *star, const wxString& name, int ncomp)
 
 static void add_star(Star *star)
 {
-  stars.push_back(star);
+  if (star->is3d) {
+    stars.push_back(star);
+  }
 
   for (const auto& nit : star->names) {
     register_name(star, nit.name, star->comp);
@@ -138,6 +140,22 @@ static bool merge_star(Star *star)
           // binary systems without too much overlapping text
           cstar->comp = star->comp;
         }
+        if (!cstar->is3d && star->is3d) {
+#if 0
+          wxLogVerbose(wxT("Converting star %s to 3D"), star->names.front().name);
+#endif
+          cstar->is3d = star->is3d;
+          cstar->pos = star->pos;
+          cstar->vmag = star->vmag;
+          cstar->color = star->color;
+          // Not sure if it makes sense to also overwrite type and temp,
+          // but we'll do it for consistency, because the type and temp
+          // of the merged star is currently used for the merged color.
+          // Maybe we'll want to change that later.
+          cstar->type = star->type;
+          cstar->temp = star->temp;
+          stars.push_back(cstar);
+        }
         delete star;
         return true;
       }
@@ -160,13 +178,12 @@ void import_catalog(ReadBase& importer) {
 
   ReadBase::StarData data;
   while (importer.ReadNext(data)) {
-    if (!data.is3d) continue;
-
     float mag_factor = (float)((min_vmag - data.vmag) / (min_vmag - max_vmag));
     mag_factor = std::max(mag_factor, 0.0f) * (1.0f - min_factor) + min_factor;
 
     // Copy data to final data structure
     Star* star = new Star;
+    star->is3d = data.is3d;
     star->pos = data.position;
     star->vmag = data.vmag;
     star->type = data.spectral_type;
