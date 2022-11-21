@@ -21,6 +21,11 @@ public:
     // If is3d is false: direction vector to star's apparent position.
     Vector position;
 
+    // Epoch of observation, i.e., the year for which this position applies.
+    // In theory, the motion vector could be used to calculate the expected position
+    // at any other epoch, within reason.
+    double epoch;
+
     // Rate of change of the position/direction vector, in units per year.
     Vector motion;
 
@@ -140,10 +145,10 @@ protected:
     PRI_EGGR      = 53,
   };
 
-  static const Transform epoch1950;
-  static const Transform epoch2000;
+  static const Transform B1950;
+  static const Transform J2000;
 
-  static void Calculate(WorkData& data, const Transform& epoch);
+  static void Calculate(WorkData& data, const Transform& frame, double epoch);
 
   static double EstimateTemperature(const wxString& type, double bvmag);
   static double EstimateTemperatureFromBV(double bvmag);

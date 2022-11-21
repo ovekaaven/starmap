@@ -112,7 +112,7 @@ bool ReadGliese::ReadNext(StarData& data) {
       work.plx = NAN;
     }
 
-    Calculate(work, epoch1950);
+    Calculate(work, B1950, 1950.0);
 
     // Special overrides for the Sun.
     if (std::isnan(work.ra)) {

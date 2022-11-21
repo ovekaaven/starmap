@@ -85,7 +85,7 @@ bool ReadBright::ReadNext(StarData& data) {
       work.rvel = NAN;
     }
 
-    Calculate(work, epoch2000);
+    Calculate(work, J2000, 2000.0);
     return true;
   }
 }

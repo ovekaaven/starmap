@@ -4,7 +4,7 @@
 #include <boost/iostreams/filter/gzip.hpp>
 #include <wx/log.h>
 
-const Transform ReadBase::epoch1950(
+const Transform ReadBase::B1950(
     // galactic core: RA 17h 42m 4s, DE -28d 55m
     Vector::dir(Angle((17*3600 + 42*60 + 4) * M_PI / (12*3600)),
                 Angle(-(28*60 + 55) * M_PI / (180*60))),
@@ -12,7 +12,7 @@ const Transform ReadBase::epoch1950(
     Vector::dir(Angle((12*60 + 49) * M_PI / (12*60)),
                 Angle(-(27*60 + 24) * M_PI / (180*60))));
 
-const Transform ReadBase::epoch2000(
+const Transform ReadBase::J2000(
     // galactic core: RA 17h 45.6m, DE -28d 56.3m
     Vector::dir(Angle((17*60 + 45.6) * M_PI / (12*60)),
                 Angle(-(28*60 + 56.3) * M_PI / (180*60))),
@@ -253,8 +253,8 @@ wxString ReadBase::MakeSuperscript(const std::string& num) {
   return n;
 }
 
-void ReadBase::Calculate(WorkData& data, const Transform& epoch) {
-  Vector dir = Vector::dir(Angle(data.ra), Angle(data.de)) * epoch;
+void ReadBase::Calculate(WorkData& data, const Transform& frame, double epoch) {
+  Vector dir = Vector::dir(Angle(data.ra), Angle(data.de)) * frame;
 
   // Position calculation
   double dist;
@@ -271,14 +271,15 @@ void ReadBase::Calculate(WorkData& data, const Transform& epoch) {
   }
 
   // Proper motion calculation
+  data.star->epoch = epoch;
   data.star->motion = Vector::null;
   if (!std::isnan(data.pmra)) {
-    data.star->motion += Vector::d_phi_s(Angle(data.ra)) * epoch
-        * (data.pmra * dist);
+    data.star->motion += Vector::d_phi_s(Angle(data.ra)) * frame
+                         * (data.pmra * dist);
   }
   if (!std::isnan(data.pmde)) {
-    data.star->motion += Vector::d_theta(Angle(data.ra), Angle(data.de)) * epoch
-        * (data.pmde * dist);
+    data.star->motion += Vector::d_theta(Angle(data.ra), Angle(data.de)) * frame
+                         * (data.pmde * dist);
   }
   if (data.star->is3d && !std::isnan(data.rvel)) {
     // rvel is given in km/s. To convert to parsec/year, we have
