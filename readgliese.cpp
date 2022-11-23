@@ -61,7 +61,7 @@ bool ReadGliese::ReadNext(StarData& data) {
 
       // There seems to sometimes be a spurious left-justified "6" in
       // the LHS field. Make sure to only use right-justified numbers.
-      if (line.length() > 180 && line[180] != ' ') {
+      if (line.length() > 179 && line[179] != ' ') {
         ReadOtherName(data, wxT("LHS "), line.substr(176, 5), PRI_LHS);
       }
       ReadExtraName(data, line.substr(182, 5));
