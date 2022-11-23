@@ -155,6 +155,12 @@ public:
                   theta.cos());
   }
 
+  static Vector interpolate(const Vector& v1,
+                            const Vector& v2,
+                            double p) {
+    return v1 * (1.0 - p) + v2 * p;
+  }
+
   static const Vector null;
 };
 
@@ -179,7 +185,10 @@ public:
 
   // construct matrix from Euler angles
   // used for camera orientation in 3D space
-  Transform(Angle pitch, Angle yaw, Angle roll, const Vector &off = Vector::null, bool flip = false)
+  Transform(Angle pitch, Angle yaw, Angle roll,
+            const Vector& pos = Vector::null,
+            const Vector& off = Vector::null,
+            bool flip = false)
   {
     double s[3], c[3];
     s[0] = pitch.sin(); c[0] = pitch.cos();
@@ -195,9 +204,12 @@ public:
     }
 
     // rotation order for view matrix: yaw, pitch, roll
-    _r[0][0] = c[1]*c[2]; _r[0][1] = -c[0]*s[2]; _r[0][2] = -s[1]*c[2] -s[0]*s[2];
-    _r[1][0] = c[1]*s[2]; _r[1][1] =  c[0]*c[2]; _r[1][2] = -s[1]*s[2] -s[0]*c[2];
-    _r[2][0] = s[1]*c[0]; _r[2][1] =  s[0];      _r[2][2] =  c[1]*c[0];
+    _r[0][0] = c[1]*c[2] +  s[0]*s[1]*s[2]; _r[0][1] = -c[0]*s[2]; _r[0][2] = -s[1]*c[2] +  s[0]*c[1]*s[2];
+    _r[1][0] = c[1]*s[2] + -s[0]*s[1]*c[2]; _r[1][1] =  c[0]*c[2]; _r[1][2] = -s[1]*s[2] + -s[0]*c[1]*c[2];
+    _r[2][0] = c[0]*s[1];                   _r[2][1] =  s[0];      _r[2][2] =  c[0]*c[1];
+
+    for (unsigned i=0; i<3; i++)
+      _t[i] += pos.get_x() * _r[i][0] + pos.get_y() * _r[i][1] + pos.get_z() * _r[i][2];
   }
 
   // construct matrix from unit vectors
@@ -213,6 +225,58 @@ public:
     vx.get(_r[0][0], _r[0][1], _r[0][2]);
     vy.get(_r[1][0], _r[1][1], _r[1][2]);
     vu.get(_r[2][0], _r[2][1], _r[2][2]);
+  }
+
+  Transform invert()
+  {
+    Transform inv;
+    unsigned i, j;
+    // To invert the rotation matrix, we only need to transpose it.
+    for (i=0; i<3; i++)
+      inv._r[i][i] = _r[i][i];
+    for (i=0; i<2; i++)
+      for (j=i+1; j<3; j++) {
+        inv._r[i][j] = _r[j][i];
+        inv._r[j][i] = _r[i][j];
+      }
+    // To invert the translation, we need to multiply it with the
+    // inverse (transposed) rotation and negate the result.
+    for (i=0; i<3; i++)
+      inv._t[i] = -(_t[0] * _r[0][i] + _t[1] * _r[1][i] + _t[2] * _r[2][i]);
+    return inv;
+  }
+
+  Vector invert_translate() const {
+    // Optimized version for callers only interested in the inverted translation
+    // (which is computed as above), not the inverted rotation matrix
+    return Vector(
+        -(_t[0] * _r[0][0] + _t[1] * _r[1][0] + _t[2] * _r[2][0]),
+        -(_t[0] * _r[0][1] + _t[1] * _r[1][1] + _t[2] * _r[2][1]),
+        -(_t[0] * _r[0][2] + _t[1] * _r[1][2] + _t[2] * _r[2][2]));
+  }
+
+  Vector get_translate() const {
+    return Vector(_t[0], _t[1], _t[2]);
+  }
+
+  double get_translate_z() const {
+    return _t[2];
+  }
+
+  Vector get_right() const {
+    return Vector(_r[0][0], _r[0][1], _r[0][2]);
+  }
+
+  Vector get_up() const {
+    return Vector(_r[1][0], _r[1][1], _r[1][2]);
+  }
+
+  Vector get_forward() const {
+    return Vector(_r[2][0], _r[2][1], _r[2][2]);
+  }
+
+  double get_forward_z() const {
+    return _r[2][2];
   }
 };
 

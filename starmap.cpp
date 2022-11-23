@@ -367,7 +367,7 @@ void StarCanvas::RenderStars()
   {
     wxNativePixelData data(*bmp);
     auto pixels = data.GetPixels();
-    for (const auto star : stars) {
+    for (const auto star: stars) {
       if (star->show &&
           star->proj.y > 1 && star->proj.y < data.GetHeight() - 1 &&
           star->proj.x > 1 && star->proj.x < data.GetWidth() - 1) {
@@ -410,7 +410,18 @@ void StarCanvas::RenderView()
   dc->SetBackground(*wxBLACK_BRUSH);
   dc->Clear();
 
-  Transform cam(pitch, Angle(), Angle(), pos, flip);
+  Transform cam(pitch, Angle(), Angle(),
+                Vector(pos.get_x(), pos.get_y(), 0.0),
+                Vector(0.0, 0.0, pos.get_z()),
+                flip);
+  Vector campos = cam.invert_translate();
+  Vector center = cam.get_forward_z() != 0.0 ?
+      campos - cam.get_forward() * (campos.get_z() / cam.get_forward_z()) :
+      Vector(pos.get_x(), pos.get_y(), 0.0);
+
+  // view that's approximately equivalent to drawn grid
+  double xview = siz.GetX() / (factor * 2.0) * pos.get_z() + 2.0 / LIGHTYEAR_PER_PARSEC;
+  double yview = siz.GetY() / (factor * 2.0) * pos.get_z() + 2.0 / LIGHTYEAR_PER_PARSEC;
 
   // update frame's status bar
   wxFrame *frame = (wxFrame *)GetParent();
@@ -430,41 +441,84 @@ void StarCanvas::RenderView()
 
   // draw grid
   if (grid && !pos.behind()) {
-    Vector grid_pos = flip ? pos.multiply(Vector(1.0, -1.0, 1.0)) : pos;
-    // not sure of the best way to draw it
-    wxPoint origin = grid_pos.pproject(factor, mx, my);
-
     double fac = factor / LIGHTYEAR_PER_PARSEC / pos.depth();
     // select a somewhat decent grid factor
     if (fac < 10) fac *= 2;
     if (fac < 10) fac *= 5;
 
-    double left = origin.x, top = origin.y;
-    while (left > 0) left -= fac;
-    while (top > 0) top -= fac;
-    while (left < 0) left += fac;
-    while (top < 0) top += fac;
+    double rfac = fac * pos.depth() / factor;
+    int xdivs = siz.GetX() / (fac * 2.0) + 2;
+    int ydivs = siz.GetY() / (fac * 2.0) + 2;
+    double yfov = siz.GetY() / (factor * 2.0);
+
+    Vector grid_pos = center - Vector(fmod(center.get_x(), rfac), fmod(center.get_y(), rfac), 0.0);
 
     // draw grid with gray pen
     dc->SetPen(*wxGREY_PEN);
 
-    while (left < siz.GetX()) {
-      long x = (long)left;
-      dc->DrawLine(x, 0, x, siz.GetY());
-      left += fac;
+    for (int x = -xdivs; x <= xdivs; x++) {
+      Vector v1 = (Vector(x, -ydivs, 0.0) * rfac + grid_pos) * cam;
+      Vector v2 = (Vector(x, ydivs, 0.0) * rfac + grid_pos) * cam;
+
+      // Sort vectors so lower Y is first, so that the
+      // clipping code has fewer cases to handle.
+      if (v1.get_y() > v2.get_y()) {
+        Vector tmp = v1; v1 = v2; v2 = tmp;
+      }
+
+      // Clip to view frustum
+      Vector delta = v2 - v1, c1 = v1, c2 = v2;
+      if (v1.get_y() < -v1.get_z() * yfov) {
+        c1 = Vector::interpolate(v1, v2,
+                                 -(v1.get_y() + v1.get_z() * yfov) /
+                                 (delta.get_y() + delta.get_z() * yfov));
+      }
+      if (v2.get_y() > v2.get_z() * yfov) {
+        c2 = Vector::interpolate(v1, v2,
+                                 -(v1.get_y() - v1.get_z() * yfov) /
+                                 (delta.get_y() - delta.get_z() * yfov));
+      }
+
+      if (c1.behind() || c2.behind()) continue;
+
+      wxPoint p1 = c1.pproject(factor, mx, my);
+      wxPoint p2 = c2.pproject(factor, mx, my);
+      dc->DrawLine(p1.x, p1.y, p2.x, p2.y);
     }
 
-    while (top < siz.GetY()) {
-      long y = (long)top;
-      dc->DrawLine(0, y, siz.GetX(), y);
-      top += fac;
+    for (int y = -ydivs; y <= ydivs; y++) {
+      Vector v1 = (Vector(-xdivs, y, 0.0) * rfac + grid_pos) * cam;
+      Vector v2 = (Vector(xdivs, y, 0.0) * rfac + grid_pos) * cam;
+
+      // Since we don't currently allow rotation about Y axis,
+      // we don't need a full-featured clip here.
+      if (v1.behind() || v2.behind()) continue;
+
+      wxPoint p1 = v1.pproject(factor, mx, my);
+      wxPoint p2 = v2.pproject(factor, mx, my);
+      dc->DrawLine(p1.x, p1.y, p2.x, p2.y);
     }
   }
 
   // first pass, calculate positions
-  for (const auto star : stars) {
-    Vector np = star->get_pos() * cam;
-    if (np.behind()) star->show = FALSE; else {
+  {
+    double x1 = center.get_x() - xview, x2 = center.get_x() + xview,
+           y1 = center.get_y() - yview, y2 = center.get_y() + yview;
+    for (const auto star: stars) {
+      // only render stars that would be on the displayed grid,
+      // even if the view is tilted, as this keeps the display readable
+      // (and if the user really wants to see more stars, they can always
+      // change Z position, or zoom out)
+      if (star->get_pos().get_x() < x1 || star->get_pos().get_x() > x2 ||
+          star->get_pos().get_y() < y1 || star->get_pos().get_y() > y2) {
+        star->show = FALSE;
+        continue;
+      }
+      Vector np = star->get_pos() * cam;
+      if (np.behind()) {
+        star->show = FALSE;
+        continue;
+      }
       star->proj = np.pproject(factor, mx, my);
       star->show = area.Contains(star->proj) != wxOutRegion;
     }
