@@ -172,7 +172,7 @@ StarCanvas::StarCanvas(wxFrame *parent)
     pos(0, 0, 35), // 35 parsec away from standard galactic plane
     refpos(0, 0, SOL_Z_OFFSET), // use Sol's position as initial ref
     pitch(0),
-    zoom(0.5),
+    zoom(1.0),
     need_realloc(FALSE),
     need_render(FALSE),
     need_paint(FALSE),
@@ -205,19 +205,19 @@ void StarCanvas::OnChar(wxKeyEvent& event)
   double factor = event.ControlDown() ? 10.0 : 1.0;
   switch(event.GetKeyCode()) {
   case WXK_LEFT:
-    pos += Vector(+zoom/10.0, 0.0, 0.0) * factor;
+    pos += Vector(+zoom/20.0, 0.0, 0.0) * factor;
     Redraw();
     break;
   case WXK_RIGHT:
-    pos += Vector(-zoom/10.0, 0.0, 0.0) * factor;
+    pos += Vector(-zoom/20.0, 0.0, 0.0) * factor;
     Redraw();
     break;
   case WXK_UP:
-    pos += Vector(0.0, flip ? -zoom/10.0 : +zoom/10.0, 0.0) * factor;
+    pos += Vector(0.0, flip ? -zoom/20.0 : +zoom/20.0, 0.0) * factor;
     Redraw();
     break;
   case WXK_DOWN:
-    pos += Vector(0.0, flip ? +zoom/10.0 : -zoom/10.0, 0.0) * factor;
+    pos += Vector(0.0, flip ? +zoom/20.0 : -zoom/20.0, 0.0) * factor;
     Redraw();
     break;
   case WXK_PAGEUP:
@@ -393,7 +393,7 @@ void StarCanvas::RenderView()
   wxSize siz(GetClientSize());
   wxRect rect(wxPoint(0, 0), siz);
   wxRegion area(rect);
-  double factor = sqrt(siz.GetX()*siz.GetX() + siz.GetY()*siz.GetY())*2 / zoom;
+  double factor = sqrt(siz.GetX()*siz.GetX() + siz.GetY()*siz.GetY())*4.0 / zoom;
   int mx = siz.GetX()/2, my = siz.GetY()/2;
   bool names = menu_bar->IsChecked(APP_NAMES);
   bool grid = menu_bar->IsChecked(APP_GRID);
@@ -424,7 +424,7 @@ void StarCanvas::RenderView()
 		 -px * LIGHTYEAR_PER_PARSEC,
 		 -py * LIGHTYEAR_PER_PARSEC,
 		 pz * LIGHTYEAR_PER_PARSEC,
-		 0.5 / zoom);
+		 1.0 / zoom);
     frame->SetStatusText(ptext, 1);
   }
 
