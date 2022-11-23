@@ -146,10 +146,10 @@ void StarFrame::Search(wxCommandEvent& WXUNUSED(event) )
   for (const auto star : stars) {
     for (const auto &nit : star->names) {
       if (nit.name.Find(str) >= 0) {
-	// found a match, center on it
-	canvas->pos = Vector(-star->pos.get_x(), -star->pos.get_y(), canvas->pos.depth());
-	Refresh();
-	return;
+        // found a match, center on it
+        canvas->pos = Vector(-star->pos.get_x(), -star->pos.get_y(), canvas->pos.depth());
+        canvas->Redraw();
+        return;
       }
     }
   }
