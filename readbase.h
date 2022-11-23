@@ -14,6 +14,40 @@
 class ReadBase {
 public:
 
+  // this priority ordering is more or less arbitrary
+  // so just reprioritize as you see fit
+  enum priority {
+    PRI_Common    = 0,  // Sirius, Procyon
+    PRI_Bayer     = 1,  // Alpha Centauri
+    PRI_Variable  = 2,  // UV Ceti
+    PRI_Flamsteed = 3,  // 44 Iota Bootis
+    PRI_Simple    = 4,  // Ross 128, Wolf 359
+    PRI_Other     = 5,
+    PRI_DM        = 6,  // BD+36°2147 (Durchmusterung)
+    PRI_AC        = 7,  // AC+82:1111 (Astrographic Catalogue)
+    PRI_Giclas    = 8,  // G 267-25
+
+    PRI_Luyten    = 10, // L 1154-029
+    PRI_BPM       = 11, // BPM 46239 (Luyten: Bruce Proper Motion Survey)
+    PRI_LFT       = 12, // LFT 94 (Luyten Five-Tenth Catalogue)
+    PRI_LHS       = 13, // LHS 102 (Luyten Half-Second Catalogue)
+    PRI_LPM       = 14, // LP 462-42 (Luyten Proper-Motion Catalogue)
+    PRI_LTT       = 15, // LTT 20 (Luyten Two-Tenth Catalogue)
+
+    PRI_Gliese    = 16,
+
+    PRI_HD        = 20, // Henry Draper
+    PRI_ADS       = 30, // Aitken Double Star
+    PRI_Vyssotsky = 40,
+    PRI_SAO       = 45, // Smithsonian Astrophysical Observatory
+    PRI_FK5       = 50,
+    PRI_Harvard   = 51,
+    PRI_UGPMF     = 52,
+    PRI_EGGR      = 53,
+
+    PRI_Hipparcos = 60,
+  };
+
   struct StarData {
     bool is3d = false;
 
@@ -111,39 +145,6 @@ protected:
   static bool LookupConstellation(wxString& name, const std::string& tok);
 
   static wxString MakeSuperscript(const std::string& num);
-
-  // this priority ordering is more or less arbitrary
-  // so just reprioritize as you see fit
-  enum priority {
-    PRI_Common    = 0,  // Sirius, Procyon
-    PRI_Bayer     = 1,  // Alpha Centauri
-    PRI_Variable  = 2,  // UV Ceti
-    PRI_Flamsteed = 3,  // 44 Iota Bootis
-    PRI_Simple    = 4,  // Ross 128, Wolf 359
-    PRI_Other     = 5,
-    PRI_DM        = 6,  // DM-36°2147 (Durchmusterung)
-    PRI_AC        = 7,  // AC+82:1111 (Astrographic Catalogue)
-    PRI_Giclas    = 8,  // G 267-25
-    PRI_GR        = 9,  // GR* 4 (Giclas Red Star)
-
-    PRI_Luyten    = 10, // L 1154-029
-    PRI_BPM       = 11, // BPM 46239 (Luyten: Bruce Proper Motion Survey)
-    PRI_LFT       = 12, // LFT 94 (Luyten Five-Tenth Catalogue)
-    PRI_LHS       = 13, // LHS 102 (Luyten Half-Second Catalogue)
-    PRI_LPM       = 14, // LP 462-42 (Luyten Proper-Motion Catalogue)
-    PRI_LTT       = 15, // LTT 20 (Luyten Two-Tenth Catalogue)
-
-    PRI_Gliese    = 16,
-
-    PRI_HD        = 20, // Henry Draper
-    PRI_ADS       = 30, // Aitken Double Star
-    PRI_Vyssotsky = 40,
-    PRI_SAO       = 45, // Smithsonian Astrophysical Observatory
-    PRI_FK5       = 50,
-    PRI_Harvard   = 51,
-    PRI_UGPMF     = 52,
-    PRI_EGGR      = 53,
-  };
 
   static const Transform B1950;
   static const Transform J2000;
