@@ -347,7 +347,7 @@ static wxColour::ChannelType BlendComponent(wxColour::ChannelType a,
 #endif
 }
 
-static void BlendPixel(wxNativePixelData::Iterator& pixel, wxColour color, bool colors)
+static void BlendPixel(wxNativePixelData::Iterator& pixel, const wxColour& color, bool colors)
 {
   if (colors) {
     pixel.Red()   = BlendComponent(pixel.Red(),   color.Red());
@@ -523,7 +523,7 @@ void StarCanvas::RenderView()
 
 void StarCanvas::DoPaint(wxDC& pdc)
 {
-  if (!bmp) return;
+  if (!ready) return;
 
   wxSize siz(GetClientSize());
   int mx = siz.GetX()/2, my = siz.GetY()/2;
