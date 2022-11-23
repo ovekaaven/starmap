@@ -434,13 +434,20 @@ double ReadBase::EstimateTemperature(const wxString& type, double bvmag) {
       {0}
   };
   // https://en.wikipedia.org/wiki/Carbon_star
-  static seq_temp carbon[] = {
+  static seq_temp carbon_c[] = {
       {wxT('C'), 0, 4500},
       {wxT('C'), 1, 4300},
       {wxT('C'), 2, 4100},
       {wxT('C'), 3, 3900},
       {wxT('C'), 4, 3650},
       {wxT('C'), 5, 3450},
+      {0}
+  };
+  static seq_temp carbon_r[] = {
+      {wxT('R'), 0, 4300},
+      {wxT('R'), 3, 3900},
+      {wxT('R'), 5, 3700},
+      {wxT('R'), 8, 3450},
       {0}
   };
   // https://en.wikipedia.org/wiki/Wolf-Rayet_star
@@ -509,7 +516,10 @@ double ReadBase::EstimateTemperature(const wxString& type, double bvmag) {
   seq_temp* table;
   seq_temp* fallback = nullptr;
   if (cls == wxT('C')) {
-    table = carbon;
+    table = carbon_c;
+  }
+  else if (cls == wxT('R')) {
+    table = carbon_r;
   }
   else if (cls == wxT('W')) {
     cls = clss[1];
