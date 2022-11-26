@@ -501,7 +501,7 @@ double ReadBase::EstimateTemperature(const wxString& type, double bvmag) {
   if (cls == wxT('D')) {
     // White dwarf types conveniently encode the temperature directly,
     // no table lookup needed.
-    return CombineWithTemperatureFromBV(50400.0 / subdiv, bvmag, bad_subdiv);
+    return CombineWithTemperatureFromBV(50400.0 / subdiv, bvmag, bad_subdiv, bad_subdiv);
   }
   if (cls == wxT('S')) {
     // S-type stars have roughly same temperature as M-type.
@@ -603,11 +603,11 @@ double ReadBase::EstimateTemperatureFromBV(double bvmag) {
   return 4600.0 * (1.0/(0.92*bvmag + 1.7) + 1.0/(0.92*bvmag + 0.62));
 }
 
-double ReadBase::CombineWithTemperatureFromBV(double temp, double bvmag, bool bad_subdiv) {
+double ReadBase::CombineWithTemperatureFromBV(double temp, double bvmag, bool bad_subdiv, bool bad_div) {
   // For temperatures below 10000 (i.e. classes other than O and B),
   // using the B-V magnitude may provide an improved estimate.
   // It seems a bit unreliable above 10000, though.
-  if (temp < 10000.0 && !std::isnan(bvmag)) {
+  if ((temp < 10000.0 && !std::isnan(bvmag)) || bad_div) {
     double bv_temp = EstimateTemperatureFromBV(bvmag);
     if (temp < 7500.0 || bad_subdiv) {
       // Use the BV-based estimate as-is for temperatures below 7500
