@@ -207,6 +207,10 @@ static bool merge_star(Star *star)
                  nit.name);
 #endif
     merge_names(cstar, star->names, star->comp);
+    if (!star->remarks.IsEmpty()) {
+      if (!cstar->remarks.IsEmpty()) cstar->remarks += wxT(' ');
+      cstar->remarks += star->remarks;
+    }
     if (!cstar->comp && star->comp) {
       // merging the component might help the UI display
       // binary systems without too much overlapping text
