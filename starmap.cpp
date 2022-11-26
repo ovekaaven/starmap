@@ -23,29 +23,29 @@ stardesc::stardesc(const Star *st, const Vector& ref)
   : star(st),
     prepped(FALSE)
 {
-  wxString tmp;
   if (!star->names.empty()) {
-    desc << "Names: ";
+    desc << wxT("Names: ");
     for (const auto& it : star->names) {
-      desc << '\t' << it.name << '\n';
+      desc << wxString::Format(wxT("\t%s\n"), it.name);
     }
   }
-  if (!star->type.IsEmpty())
-    desc << "Type: \t" << star->type << '\n';
-  tmp.Printf("Pos: \t(%+.2f,%+.2f,%+.2f)\n",
+  if (!star->type.IsEmpty()) {
+    desc << wxString::Format(wxT("Type: \t%s\n"), star->type);
+  }
+  if (!std::isnan(star->temp)) {
+    unsigned rtemp = 100 * (unsigned)((star->temp + 50.0) / 100.0);
+    desc << wxString::Format(wxT("Eff T: \t%u\u00b0K\n"), rtemp);
+  }
+  desc << wxString::Format(wxT("Pos: \t(%+.2f,%+.2f,%+.2f)\n"),
 	     // use units which seem natural for the user
 	     star->pos.get_x() * LIGHTYEAR_PER_PARSEC,
 	     star->pos.get_y() * LIGHTYEAR_PER_PARSEC,
 	     -star->pos.get_z() * LIGHTYEAR_PER_PARSEC);
-  desc << tmp;
-  Vector stc(star->pos);
-  stc -= ref;
-  tmp.Printf("Dist: \t%.2f ly\n", stc.norm() * LIGHTYEAR_PER_PARSEC);
-  desc << tmp;
-  tmp.Printf("Vmag: \t%.2f\n", star->vmag);
-  desc << tmp;
-  if (!star->remarks.IsEmpty())
-    desc << "Remarks: \t" << star->remarks << '\n';
+  desc << wxString::Format(wxT("Dist: \t%.2f ly\n"), (star->pos - ref).norm() * LIGHTYEAR_PER_PARSEC);
+  desc << wxString::Format(wxT("Vmag: \t%.2f\n"), star->vmag);
+  if (!star->remarks.IsEmpty()) {
+    desc << wxString::Format(wxT("Remarks: \t%s\n"), star->remarks);
+  }
   // anything else?
 }
 
